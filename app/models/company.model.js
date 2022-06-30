@@ -4,12 +4,12 @@ const sql = require("./db.js");
 class Company {
     
     constructor(company) {
-        this.razonSocial = company.razonSocial;
-        this.cuit = company.cuit;
-        this.isDeleted = company.isDeleted;
-        this.timeSave = company.timeSave;
-        this.timeDeleted = company.timeDeleted;
-        this.timeLastUpdate = company.timeLastUpdate;
+        this.RazonSocial = company.RazonSocial;
+        this.CUIT = company.CUIT;
+        this.IsDeleted = company.IsDeleted;
+        this.TimeSave = company.TimeSave;
+        this.TimeDeleted = company.TimeDeleted;
+        this.TimeLastUpdate = company.TimeLastUpdate;
     }
 
     static create(newCompany, result) {
@@ -68,7 +68,7 @@ class Company {
     static updateById(IdCompany, company, result) {
         sql.query(
             "UPDATE company SET RazonSocial = ?, CUIT = ?, TimeLastUpdate = ? WHERE IdCompany = ? AND IsDeleted = 0",
-            [company.razonSocial, company.cuit, company.timeLastUpdate, IdCompany],
+            [company.RazonSocial, company.CUIT, company.TimeLastUpdate, IdCompany],
             (err, res) => {
 
                 if (err) {

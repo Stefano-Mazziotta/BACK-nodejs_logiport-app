@@ -11,12 +11,12 @@ exports.create = (req, res) => {
     // create company
     let nowTimestamp = Date.now();
     const company = new Company({
-        razonSocial: req.body.razonSocial,
-        cuit: req.body.cuit,
-        isDeleted: 0,
-        timeSave: nowTimestamp,
-        timeDeleted: null,
-        timeLastUpdate: null
+        RazonSocial: req.body.RazonSocial,
+        CUIT: req.body.CUIT,
+        IsDeleted: 0,
+        TimeSave: nowTimestamp,
+        TimeDeleted: null,
+        TimeLastUpdate: null
     })
 
     // save company in the database
@@ -32,8 +32,8 @@ exports.create = (req, res) => {
 
 // Retrieve all Companies from the database (with condition).
 exports.findAll = (req, res) => {
-    const razonSocial = req.body.razonSocial;
-    Company.getAll(razonSocial, (err, data) => {
+    const RazonSocial = req.query.RazonSocial;
+    Company.getAll(RazonSocial, (err, data) => {
         if(err){
             res.status(500).send({
                 message: err.message || "Some error occurred while retrieving companies."
@@ -72,9 +72,9 @@ exports.update = (req, res) => {
 
     let nowTimestamp = Date.now();
     const company = new Company({
-        razonSocial: req.body.razonSocial,
-        cuit: req.body.cuit,
-        timeLastUpdate: nowTimestamp
+        RazonSocial: req.body.RazonSocial,
+        CUIT: req.body.CUIT,
+        TimeLastUpdate: nowTimestamp
     })
 
     Company.updateById(
