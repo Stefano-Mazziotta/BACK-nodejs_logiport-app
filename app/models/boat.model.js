@@ -14,8 +14,8 @@ class Boat {
         this.SpecificExploitation = boat.SpecificExploitation;
         this.EnrollmentDate = boat.EnrollmentDate;
         this.ConstructionDate = boat.ConstructionDate;
-        this.Nat = boat.Nat;
-        this.Nan = boat.Nan;
+        this.NAT = boat.NAT;
+        this.NAN = boat.NAN;
         this.Eslora = boat.Eslora;
         this.Manga = boat.Manga;
         this.Puntal = boat.Puntal;
@@ -100,8 +100,8 @@ class Boat {
             SpecificExploitation = '${boat.SpecificExploitation}',
             EnrollmentDate = '${boat.EnrollmentDate}',
             ConstructionDate = '${boat.ConstructionDate}',
-            NAT = ${boat.Nat},
-            NAN = ${boat.Nan},
+            NAT = ${boat.NAT},
+            NAN = ${boat.NAN},
             Eslora = ${boat.Eslora},
             Manga = ${boat.Manga},
             Puntal = ${boat.Puntal},

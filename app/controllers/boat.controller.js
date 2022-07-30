@@ -21,8 +21,8 @@ exports.create = (req, res) => {
         SpecificExploitation: req.body.SpecificExploitation,
         EnrollmentDate: req.body.EnrollmentDate,
         ConstructionDate: req.body.ConstructionDate,
-        Nat: req.body.Nat,
-        Nan: req.body.Nan,
+        NAT: req.body.NAT,
+        NAN: req.body.NAN,
         Eslora: req.body.Eslora,
         Manga: req.body.Manga,
         Puntal: req.body.Puntal,
@@ -57,9 +57,10 @@ exports.findAll = (req, res) => {
     Boat.getAll(boatParams, (err, data) => {
         if(err){
             if (err.kind === "not_found") {
-                res.status(404).send({
+                res.status(200).send({
                     message: `Not found boats with IdCompany ${boatParams.IdCompany}.`
                 });
+                return;
             }
             res.status(500).send({
                 message: err.message || "Some error occurred while retrieving boats."
@@ -108,8 +109,8 @@ exports.update = (req, res) => {
         SpecificExploitation: req.body.SpecificExploitation,
         EnrollmentDate: req.body.EnrollmentDate,
         ConstructionDate: req.body.ConstructionDate,
-        Nat: req.body.Nat,
-        Nan: req.body.Nan,
+        NAT: req.body.NAT,
+        NAN: req.body.NAN,
         Eslora: req.body.Eslora,
         Manga: req.body.Manga,
         Puntal: req.body.Puntal,
