@@ -1,16 +1,21 @@
 const Boat = require("../models/boat.model.js");
+const boatErrors = require("../messages/errorMessages/errorsBoat.js");
+const boatSuccessMessage = require("../messages/successMessages/successBoat.js");
 
-// Create and save a new Boat
-exports.create = (req, res) => {
-    if (!req.body){
-        res.status(400).send({
-            message: "Content can not be empty!"
-        });
-    }
+function sendResponse(res, successResponseObj){
+    res.status(successResponseObj.status);
+    res.send(successResponseObj);
+}
 
-    // create Boat
-    let nowTimestamp = Date.now();
-    const boat = new Boat({
+exports.create = (req, res, next) => {
+
+    if (Object.keys(req.body).length === 0){
+        next(boatErrors.bodyEmpty);
+        return;
+    } 
+
+    const nowTimestamp = Date.now();
+    const boatConstructor = {
         IdCompany: req.body.IdCompany,
         BoatName: req.body.BoatName,
         Enrollment: req.body.Enrollment,
@@ -33,68 +38,68 @@ exports.create = (req, res) => {
         TimeSave: nowTimestamp,
         TimeDeleted: null,
         TimeLastUpdate: null
-    });
+    }
+    const boat = new Boat(boatConstructor);
 
-    // save boat in the database
-    Boat.create(boat, (err, data) => {
-        if(err){
-            res.status(500).send({
-                message: err.message || "Some error occurred while creating the Boat."
-            });
-        }
-        res.send(data);
+    Boat.create(boat, (modelError, modelResponse) => {
+
+        if (modelError) {
+            next(boatErrors.errorCreateBoat);
+            return;
+        } 
+        console.log(`boat ${modelResponse.id} created successfuly`);
+        let successResponse = boatSuccessMessage.boatCreated(modelResponse.id);
+        sendResponse(res, successResponse);                 
     });
 };
 
-// Retrieve all Boats from the database (with condition).
-exports.findAll = (req, res) => {
+exports.findAll = (req, res, next) => {
     
     const boatParams = {
         IdCompany: req.query.IdCompany,
         BoatName: req.query.BoatName,
     }
 
-    Boat.getAll(boatParams, (err, data) => {
-        if(err){
-            if (err.kind === "not_found") {
-                res.status(200).send({
-                    message: `Not found boats with IdCompany ${boatParams.IdCompany}.`
-                });
-                return;
-            }
-            res.status(500).send({
-                message: err.message || "Some error occurred while retrieving boats."
-            });
+    Boat.getAll(boatParams, (modelError, boatsResult) => {
+
+        if(modelError) {
+            next(boatErrors.errorFindAllBoats);
+            return;
+        }        
+
+        if(boatsResult.length) {
+            let successResponse = boatSuccessMessage.findAllBoats(boatsResult);
+            sendResponse(res, successResponse);
+            return;
         }
-        res.send(data);
+        
+        next(boatErrors.notFound("findAll"));
     });
 };
 
-// Find a single Boat with an id.
-exports.findOne = (req, res) => {
-    Boat.findById(req.params.id, (err,data) => {
-        if (err) {
-            if (err.kind === "not_found") {
-                res.status(404).send({
-                    message: `Not found with id ${req.params.id}.`
-                });
-            }
-            res.status(500).send({
-                message: `Error retrieving Boat with id ${req.params.id}` 
-            })
-        } else {
-            res.send(data);
+exports.findOne = (req, res, next) => {
+    Boat.findById(req.params.id, (modelError, boatResult) => {
+        
+        if(modelError) {   
+            next(boatErrors.errorFindOneBoat(req.params.id));
+            return;
         }
+
+        if(boatResult.length){            
+            let successResponse = boatSuccessMessage.findOneBoat(boatResult);
+            sendResponse(res, successResponse);
+            return;
+        }
+        
+        next(boatErrors.notFound("findOneById"));
     });
 };
 
-// Update a Boat identified by the id in the request.
-exports.update = (req, res) => {
-    // validate request
+exports.update = (req, res, next) => {
+
     if(Object.keys(req.body).length === 0){
-        res.status(400).send({
-            message: "Content can not be empty!"
-        });    
+        next(boatErrors.bodyEmpty)
+        return;
     }
 
     let nowTimestamp = Date.now();
@@ -123,41 +128,39 @@ exports.update = (req, res) => {
         TimeLastUpdate: nowTimestamp
     });
 
-    Boat.updateById(
-        req.params.id,
-        boat,
-        (err, data) => {
-            if(err){
-                if(err.kind === "not_found") {
-                    res.status(404).send({
-                        message: `Not found Boat with id ${req.params.id}.`
-                    });
-                }
-                res.status(500).send({
-                    message: `Error updating Boat with ${req.params.id}.`
-                })
-            } else {
-                res.send(data);
+    Boat.updateById(req.params.id, boat, (modelError, boatUpdated) => {
+
+        if(modelError){
+
+            if(modelError.kind === "not_found") {
+                next(boatErrors.notFound("updateById"));
+                return;
             }
-        }
-    );
+
+            next(boatErrors.errorUpdateBoat(req.params.id));
+            return;
+        } 
+
+        let successResponse = boatSuccessMessage.updateOneBoat(boatUpdated.id);
+        sendResponse(res, successResponse);
+    });
 };
 
-// Delete a Boat with the specified id in the request.
-exports.delete = (req, res) => {
-    let timeDeleted = Date.now();
-    Boat.remove(req.params.id,  timeDeleted, (err, data) => {
-        if(err){
-            if(err.kind === "not_found"){
-                res.status(404).send({
-                    message: `Not found Boat with id ${req.params.id}`
-                });
+exports.delete = (req, res, next) => {
+    
+    Boat.remove(req.params.id, (modelError, modelResponse) => {
+
+        if(modelError){
+            if(modelError.kind === "not_found"){
+                next(boatErrors.notFound("deleteBoat"));
+                return;
             }
-            res.status(500).send({
-                message: `Could not delete Boat with id ${req.params.id}.`
-            });
-        } else {
-            res.send({ message: `Boat was deleted successfully!`});
-        }
+
+            next(boatErrors.errorDeleteBoat(req.params.id));
+            return;
+        } 
+
+        let successResponse = boatSuccessMessage.deleteBoat(req.params.id);
+        sendResponse(res, successResponse);
     });
 };

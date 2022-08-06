@@ -1,21 +1,17 @@
 module.exports = app => {
-    const boats = require("../controllers/boat.controller.js");
-    var router = require("express").Router();
 
-    // Create new Boat.
-    router.post("/", boats.create);
+    const boatController = require("../controllers/boat.controller.js");
+    const router = require("express").Router();
 
-    // Retrieve all Companies.
-    router.get("/", boats.findAll);
+    router.post("/", boatController.create);
 
-    // Retrieve a single Boat with id.
-    router.get("/:id", boats.findOne);
+    router.get("/", boatController.findAll);
 
-    // Update a Boat with id.
-    router.put("/:id", boats.update);
+    router.get("/:id", boatController.findOne);
 
-    // Delete a Boat with id
-    router.delete("/:id", boats.delete);
+    router.put("/:id", boatController.update);
+
+    router.delete("/:id", boatController.delete);
 
     app.use('/api/boats', router);
 }

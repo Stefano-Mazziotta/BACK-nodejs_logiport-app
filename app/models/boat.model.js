@@ -28,136 +28,105 @@ class Boat {
         this.TimeDeleted = boat.TimeDeleted;
     }
 
-    static create(newBoat, result) {
-        sql.query("INSERT INTO boat SET ?", newBoat, (err, res) => {
+    static async create(newBoat, result) {
+        sql.query("INSERT INTO boat SET ?", newBoat, (queryError, queryResponse) => {
 
-            if (err) {
-                console.log(`error: ${err}`);
-                result(err, null);
+            if (queryError) {
+                result(queryError, null);
                 return;
             }
-
-            console.log("Created boat: ", { id: res.insertId, ...newBoat });
-            result(null, { id: res.insertId, ...newBoat });
+            let boatCreated = { id: queryResponse.insertId, ...newBoat };
+            result(null, boatCreated);
         });
     }
 
     static getAll(boatParams, result) {
-        let query = `SELECT * FROM boat WHERE IsDeleted = 0 AND IdCompany ='${boatParams.IdCompany}'`;
+        let query = `SELECT * FROM x WHERE IsDeleted = 0 AND IdCompany ='${boatParams.IdCompany}'`;
         if (boatParams.BoatName) {
             query += ` AND BoatName LIKE '%${boatParams.BoatName}%'`;
         }
 
-        sql.query(query, (err, res) => {
+        sql.query(query, (queryError, queryResponse) => {
 
-            if (err) {
-                console.log("error: ", err);
-                result(null, err);
+            if (queryError) {
+                result(queryError, null);
                 return;
             }
 
-            if (res.length) {
-                console.log("boats: ", res);
-                result(null, res);
-                return;
-            }
-
-            // not found boats with the IdCompany
-            result({ kind: "not_found" }, null);
+            result(null, queryResponse);
         });
     }
 
     static findById(IdBoat, result) {
-        sql.query(`SELECT * FROM boat WHERE IsDeleted = 0 AND IdBoat = ${IdBoat}`, (err, res) => {
+        sql.query(`SELECT * FROM boat WHERE IsDeleted = 0 AND IdBoat = ${IdBoat}`, (queryError, queryResponse) => {
 
-            if (err) {
-                console.log("error: ", err);
-                result(err, null);
+            if(queryError){
+                result(queryError, null);
                 return;
             }
-
-            if (res.length) {
-                console.log("found boat: ", res[0]);
-                result(null, res[0]);
-                return;
-            }
-
-            // not found boat with the id
-            result({ kind: "not_found" }, null);
+        
+            result(null, queryResponse);
         });
     }
     
     static updateById(IdBoat, boat, result) {
-        let query = `
-            UPDATE boat SET 
 
-            BoatName = '${boat.BoatName}', 
-            Enrollment = '${boat.Enrollment}', 
-            DistinguishingMark = '${boat.DistinguishingMark}',
-            HullMaterial = '${boat.HullMaterial}',
-            BoatType = '${boat.BoatType}',
-            Service = '${boat.Service}',
-            SpecificExploitation = '${boat.SpecificExploitation}',
-            EnrollmentDate = '${boat.EnrollmentDate}',
-            ConstructionDate = '${boat.ConstructionDate}',
-            NAT = ${boat.NAT},
-            NAN = ${boat.NAN},
-            Eslora = ${boat.Eslora},
-            Manga = ${boat.Manga},
-            Puntal = ${boat.Puntal},
-            PeopleTransported = ${boat.PeopleTransported},
-            BoatPower = '${boat.BoatPower}',
-            ElectricPower = '${boat.ElectricPower}',
-            TimeLastUpdate = ${boat.TimeLastUpdate}
-        
-            WHERE IdBoat = ${IdBoat} AND IsDeleted = 0;
-        `;
-        
-        query = query.replace(/(\r\n|\n|\r)/gm, "");
+        let query = "UPDATE boat SET ";
+        query += `BoatName = '${boat.BoatName}',`;
+        query += `Enrollment = '${boat.Enrollment}',`;
+        query += `DistinguishingMark = '${boat.DistinguishingMark}',`;
+        query += `HullMaterial = '${boat.HullMaterial}',`;
+        query += `BoatType = '${boat.BoatType}',`;  
+        query += `Service = '${boat.Service}',`;
+        query += `SpecificExploitation = '${boat.SpecificExploitation}',`;
+        query += `EnrollmentDate = '${boat.EnrollmentDate}',`;          
+        query += `ConstructionDate = '${boat.ConstructionDate},'`;
+        query += `NAT = ${boat.NAT},`;
+        query += `NAN = ${boat.NAN}`;       
+        query += `Eslora = ${boat.Eslora},`;
+        query += `Manga = ${boat.Manga}`;
+        query += `Puntal = ${boat.Puntal},`;           
+        query += `PeopleTransported = ${boat.PeopleTransported},`;
+        query += `BoatPower = '${boat.BoatPower}',`;
+        query += `ElectricPower = '${boat.ElectricPower}',`;
+        query += `TimeLastUpdate = ${boat.TimeLastUpdate}`;
+        query += `WHERE IdBoat = ${IdBoat} AND IsDeleted = 0;`;
 
-        sql.query(
-            query,
-            (err, res) => {
+        sql.query(query, (queryError, queryResponse) => {
 
-                if (err) {
-
-                    console.log("error: ", err);
-                    result(null, err);
-                    return;
-                }
-
-                if (res.affectedRows == 0) {
-                    //not found company with the id
-                    result({ kind: "not_found" }, null);
-                    return;
-                }
-
-                console.log("updated boat: ", { id: IdBoat, ...boat });
-                result(null, { id: IdBoat, ...boat });
+            if(queryError){
+                result(queryError, null);
+                return;
             }
-        );
+
+            if(queryResponse.affectedRows == 0){
+                result({ kind: "not_found" }, null);
+                return;
+            }
+
+            console.log("updated boat: ", { id: IdBoat, ...boat });
+            result(null, { id: IdBoat, ...boat });
+        });
     }
     
-    static remove(IdBoat, timeDeleted, result) {
-        sql.query(
-            "UPDATE boat SET IsDeleted = 1, TimeDeleted = ? WHERE IdBoat = ? AND IsDeleted = 0", 
-            [timeDeleted,IdBoat], 
-            (err, res) => {
+    static remove(IdBoat, result) {
+        let timeDeleted = Date.now();
 
-                if (err) {
-                    console.log("error: ", err);
-                    result(null, err);
+        sql.query(
+            `UPDATE boat SET IsDeleted = 1, TimeDeleted = ${timeDeleted} WHERE IdBoat = ${IdBoat} AND IsDeleted = 0`, 
+            (queryError, queryResponse) => {
+
+                if (queryError) {
+                    result(null, queryError);
                     return;
                 }
 
-                if (res.affectedRows == 0) {
-                    // not found boat with the id
+                if (queryResponse.affectedRows == 0) {
                     result({ kind: "not_found" }, null);
                     return;
                 }
 
-                console.log("deleted boat with id: ", IdBoat);
-                result(null, res);
+                result(null, queryResponse);
             }
         );
     }
