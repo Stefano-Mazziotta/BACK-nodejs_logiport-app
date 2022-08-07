@@ -13,16 +13,15 @@ class Company {
     }
 
     static create(newCompany, result) {
-        sql.query("INSERT INTO company SET ?", newCompany, (err, res) => {
+        sql.query("INSERT INTO company SET ?", newCompany, (queryError, queryResponse) => {
 
-            if (err) {
-                console.log(`error: ${err}`);
-                result(err, null);
+            if (queryError) {
+                result(queryError, null);
                 return;
             }
 
-            console.log("Created company: ", { id: res.insertId, ...newCompany });
-            result(null, { id: res.insertId, ...newCompany });
+            let companyCreated = { id: queryResponse.insertId, ...newCompany };
+            result(null, companyCreated);
         });
     }
 
@@ -32,84 +31,67 @@ class Company {
             query += ` AND RazonSocial LIKE '%${razonSocial}%'`;
         }
 
-        sql.query(query, (err, res) => {
+        sql.query(query, (queryError, queryResponse) => {
 
-            if (err) {
-                console.log("error: ", err);
-                result(null, err);
+            if (queryError) {
+                result(queryError, null);
                 return;
             }
 
-            console.log("companies: ", res);
-            result(null, res);
+            result(null, queryResponse);
         });
     }
 
-    static findById(IdCompany, result) {
-        sql.query(`SELECT * FROM company WHERE IdCompany = ${IdCompany}`, (err, res) => {
+    static findById(idCompany, result) {
+        sql.query(`SELECT * FROM company WHERE IdCompany = ${idCompany}`, (queryError, queryResponse) => {
 
-            if (err) {
-                console.log("error: ", err);
-                result(err, null);
+            if(queryError){
+                result(queryError, null);
                 return;
             }
-
-            if (res.length) {
-                console.log("found company: ", res[0]);
-                result(null, res[0]);
-                return;
-            }
-
-            // not found company with the id
-            result({ kind: "not_found" }, null);
+        
+            result(null, queryResponse);
         });
     }
     
-    static updateById(IdCompany, company, result) {
+    static updateById(idCompany, company, result) {
         sql.query(
             "UPDATE company SET RazonSocial = ?, CUIT = ?, TimeLastUpdate = ? WHERE IdCompany = ? AND IsDeleted = 0",
-            [company.RazonSocial, company.CUIT, company.TimeLastUpdate, IdCompany],
-            (err, res) => {
+            [company.RazonSocial, company.CUIT, company.TimeLastUpdate, idCompany],
+            (queryError, queryResponse) => {
 
-                if (err) {
-
-                    console.log("error: ", err);
-                    result(null, err);
+                if (queryError) {
+                    result(queryError, null);
                     return;
                 }
 
-                if (res.affectedRows == 0) {
-                    //not found company with the id
+                if (queryResponse.affectedRows == 0) {
                     result({ kind: "not_found" }, null);
                     return;
                 }
 
-                console.log("updated company: ", { id: IdCompany, ...company });
-                result(null, { id: IdCompany, ...company });
+                result(null, { id: idCompany, ...company });
             }
         );
     }
 
-    static remove(IdCompany, timeDeleted, result) {
+    static remove(idCompany, timeDeleted, result) {
         sql.query(
             "UPDATE company SET IsDeleted = 1, TimeDeleted = ? WHERE IdCompany = ? AND IsDeleted = 0", 
-            [timeDeleted,IdCompany], 
-            (err, res) => {
+            [timeDeleted,idCompany], 
+            (queryError, queryResponse) => {
 
-                if (err) {
-                    console.log("error: ", err);
-                    result(null, err);
+                if (queryError) {
+                    result(queryError, null);
                     return;
                 }
 
-                if (res.affectedRows == 0) {
-                    // not found company with the id
+                if (queryResponse.affectedRows == 0) {
                     result({ kind: "not_found" }, null);
                     return;
                 }
 
-                console.log("deleted company with id: ", IdCompany);
-                result(null, res);
+                result(null, queryResponse);
             }
         );
     }

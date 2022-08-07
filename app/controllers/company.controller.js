@@ -1,14 +1,20 @@
 const Company = require("../models/company.model.js");
+const companyErrors = require("../messages/errorMessages/errorsCompany.js");
+const companySuccessMessage = require("../messages/successMessages/successCompany.js");
 
-// Create and save a new Company
-exports.create = (req, res) => {
-    if (!req.body){
-        res.status(400).send({
-            message: "Content can not be empty!"
-        });
-    }
+function sendResponse(res, successResponseObj){
+    res.status(successResponseObj.status);
+    res.send(successResponseObj);
+}
 
-    // create company
+
+exports.create = (req, res, next) => {
+
+    if (Object.keys(req.body).length === 0){
+        next(companyErrors.bodyEmpty);
+        return;
+    } 
+
     let nowTimestamp = Date.now();
     const company = new Company({
         RazonSocial: req.body.RazonSocial,
@@ -19,55 +25,61 @@ exports.create = (req, res) => {
         TimeLastUpdate: null
     })
 
-    // save company in the database
-    Company.create(company, (err, data) => {
-        if(err){
-            res.status(500).send({
-                message: err.message || "Some error occurred while creating the company."
-            });
+    Company.create(company, (modelError, companyCreated) => {
+        if(modelError){
+            next(companyErrors.errorCreateCompany);
+            return;
         }
-        res.send(data);
+    
+        const successResponse = companySuccessMessage.companyCreated(companyCreated.id);
+        sendResponse(res, successResponse);
     });
 };
 
-// Retrieve all Companies from the database (with condition).
-exports.findAll = (req, res) => {
-    const RazonSocial = req.query.RazonSocial;
-    Company.getAll(RazonSocial, (err, data) => {
-        if(err){
-            res.status(500).send({
-                message: err.message || "Some error occurred while retrieving companies."
-            });
+exports.findAll = (req, res, next) => {
+    const razonSocial = req.body.RazonSocial;
+
+    Company.getAll(razonSocial, (modelError, companiesList) => {
+        
+        if(modelError) {
+            next(companyErrors.errorFindAllCompany);
+            return;
+        }        
+
+        if(companiesList.length) {
+            const successResponse = companySuccessMessage.findAllCompanies(companiesList);
+            sendResponse(res, successResponse);
+            return;
         }
-        res.send(data);
+        
+        next(companyErrors.notFound("findAll"));
     });
 };
 
-// Find a single Company with an id.
-exports.findOne = (req, res) => {
-    Company.findById(req.params.id, (err,data) => {
-        if (err) {
-            if (err.kind === "not_found") {
-                res.status(404).send({
-                    message: `Not found with id ${req.params.id}.`
-                });
-            }
-            res.status(500).send({
-                message: `Error retrieving Company with id ${req.params.id}` 
-            })
-        } else {
-            res.send(data);
+exports.findOne = (req, res, next) => {
+    Company.findById(req.params.id, (modelError, companyResult) => {
+
+        if(modelError) {   
+            next(companyErrors.errorFindOneCompany(req.params.id));
+            return;
         }
+
+        if(companyResult.length){            
+            const successResponse = companySuccessMessage.findOneCompany(companyResult);
+            sendResponse(res, successResponse);
+            return;
+        }
+        
+        next(companyErrors.notFound("findOneById"));
     });
+
 };
 
-// Update a Company identified by the id in the request.
-exports.update = (req, res) => {
-    // validate request
+exports.update = (req, res, next) => {
+    
     if(Object.keys(req.body).length === 0){
-        res.status(400).send({
-            message: "Content can not be empty!"
-        });    
+        next(companyErrors.bodyEmpty);
+        return;
     }
 
     let nowTimestamp = Date.now();
@@ -77,41 +89,41 @@ exports.update = (req, res) => {
         TimeLastUpdate: nowTimestamp
     })
 
-    Company.updateById(
-        req.params.id,
-        company,
-        (err, data) => {
-            if(err){
-                if(err.kind === "not_found") {
-                    res.status(404).send({
-                        message: `Not found Company with id ${req.params.id}.`
-                    });
-                }
-                res.status(500).send({
-                    message: `Error updating Company with ${req.params.id}.`
-                })
-            } else {
-                res.send(data);
+    Company.updateById( req.params.id, company, (modelError, companyUpdated) => {
+
+        if(modelError){
+
+            if(modelError.kind === "not_found") {
+                next(companyErrors.notFound("updateById"));
+                return;
             }
-        }
-    );
+
+            next(companyErrors.errorUpdateCompany(req.params.id));
+            return;
+        } 
+
+        const successResponse = companySuccessMessage.updateOneCompany(companyUpdated.id);
+        sendResponse(res, successResponse);        
+    });
 };
 
-// Delete a Company with the specified id in the request.
-exports.delete = (req, res) => {
+exports.delete = (req, res, next) => {
     let timeDeleted = Date.now();
-    Company.remove(req.params.id,  timeDeleted, (err, data) => {
-        if(err){
-            if(err.kind === "not_found"){
-                res.status(404).send({
-                    message: `Not found Company with id ${req.params.id}`
-                });
+
+    Company.remove(req.params.id,  timeDeleted, (modelError, modelResponse) => {
+
+        if(modelError){
+
+            if(modelError.kind === "not_found"){
+                next(companyErrors.notFound("deleteCompany"));
+                return;
             }
-            res.status(500).send({
-                message: `Could not delete Company with id ${req.params.id}.`
-            });
-        } else {
-            res.send({ message: `Company was deleted successfully!`});
-        }
+
+            next(companyErrors.errorDeleteCompany(req.params.id));
+            return;
+        } 
+
+        const successResponse = companySuccessMessage.deleteCompany(req.params.id);
+        sendResponse(res, successResponse);
     });
 };
