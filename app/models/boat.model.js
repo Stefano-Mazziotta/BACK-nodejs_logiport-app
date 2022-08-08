@@ -41,7 +41,7 @@ class Boat {
     }
 
     static getAll(boatParams, result) {
-        let query = `SELECT * FROM x WHERE IsDeleted = 0 AND IdCompany ='${boatParams.IdCompany}'`;
+        let query = `SELECT * FROM boat WHERE IsDeleted = 0 AND IdCompany ='${boatParams.IdCompany}'`;
         if (boatParams.BoatName) {
             query += ` AND BoatName LIKE '%${boatParams.BoatName}%'`;
         }
