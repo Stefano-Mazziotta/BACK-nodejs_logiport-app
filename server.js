@@ -1,10 +1,12 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const app = express();
 const errorHandler = require('./app/middlewares/errorHandler');
 
 var corsOptions = {
-    origin: "http://localhost:4200"
+    origin: process.env.CORS_ORIGIN
 };
 
 app.use(cors(corsOptions));
@@ -23,7 +25,7 @@ require("./app/routes/boat.routes.js")(app);
 app.use(errorHandler);
 
 //set port, listen for request
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}.`);
 })
