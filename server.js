@@ -5,7 +5,7 @@ const cors = require('cors');
 const app = express();
 const errorHandler = require('./app/middlewares/errorHandler');
 
-var corsOptions = {
+const corsOptions = {
     origin: process.env.CORS_ORIGIN
 };
 
@@ -22,6 +22,7 @@ app.get("/", (req, res) => {
 
 require("./app/routes/company.routes.js")(app);
 require("./app/routes/boat.routes.js")(app);
+require("./app/routes/motor.routes.js")(app);
 app.use(errorHandler);
 
 //set port, listen for request
