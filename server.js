@@ -23,6 +23,7 @@ app.get("/", (req, res) => {
 require("./app/routes/company.routes.js")(app);
 require("./app/routes/boat.routes.js")(app);
 require("./app/routes/motor.routes.js")(app);
+require("./app/routes/generator.routes.js")(app);
 app.use(errorHandler);
 
 //set port, listen for request
