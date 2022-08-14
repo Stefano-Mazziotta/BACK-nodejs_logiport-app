@@ -109,7 +109,7 @@ class Motor {
             (queryError, queryResponse) => {
 
                 if (queryError) {
-                    modelResponseCallback(null, queryError);
+                    modelResponseCallback(queryError, null);
                     return;
                 }
 
