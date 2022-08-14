@@ -117,7 +117,7 @@ class Boat {
             (queryError, queryResponse) => {
 
                 if (queryError) {
-                    result(null, queryError);
+                    result(queryError, null);
                     return;
                 }
 
