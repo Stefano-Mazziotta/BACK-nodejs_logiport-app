@@ -11,8 +11,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// parse request of content-type - application/json
-// parse request of content-type - application/x-www-form-urlencoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -25,9 +23,9 @@ require("./app/routes/boat.routes.js")(app);
 require("./app/routes/motor.routes.js")(app);
 require("./app/routes/generator.routes.js")(app);
 require("./app/routes/expiration.routes.js")(app);
+require("./app/routes/user.routes.js")(app);
 app.use(errorHandler);
 
-//set port, listen for request
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}.`);
