@@ -64,12 +64,12 @@ class Company {
         return affectedRows;
     }
 
-    static async remove(company) {
+    static async remove(deleteParams) {
 
-        const { IdCompany, TimeDeleted } = company;
+        const { idCompany, timeDeleted } = deleteParams;
         let query = `UPDATE company  
-            SET IsDeleted = 1, TimeDeleted = ${TimeDeleted} 
-            WHERE IdCompany = '${IdCompany}' AND IsDeleted = 0;`
+            SET IsDeleted = 1, TimeDeleted = ${timeDeleted} 
+            WHERE IdCompany = '${idCompany}' AND IsDeleted = 0;`
 
         query = stringUtils.cleanLineBreak(query);
 

@@ -140,13 +140,13 @@ exports.delete = async (request, response, next) => {
     const idCompany = params.id;
     const timeDeleted = Date.now();
 
-    const company = new Company({
-        IdCompany: idCompany,
-        TimeDeleted: timeDeleted
-    });
+    const deleteParams = {
+        idCompany: idCompany,
+        timeDeleted: timeDeleted
+    };
 
     let internalError = null;
-    const affectedRows = await Company.remove(company)
+    const affectedRows = await Company.remove(deleteParams)
         .catch( error => {
             internalError = error;
         });
