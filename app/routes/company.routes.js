@@ -1,16 +1,18 @@
 module.exports = app => {
-    const companies = require("../controllers/company.controller.js");
+    const companyController = require("../controllers/company.controller");
+    const userExtractor = require("../middlewares/userExtractor");
+
     var router = require("express").Router();
 
-    router.post("/", companies.create);
+    router.post("/", userExtractor, companyController.create);
 
-    router.get("/", companies.findAll);
+    router.get("/", userExtractor, companyController.findAll);
 
-    router.get("/:id", companies.findOne);
+    router.get("/:id", userExtractor, companyController.findOne);
 
-    router.put("/:id", companies.update);
+    router.put("/:id", userExtractor, companyController.update);
 
-    router.delete("/:id", companies.delete);
+    router.delete("/:id", userExtractor, companyController.delete);
 
     app.use('/api/companies', router);
 }

@@ -4,47 +4,47 @@ const TYPE_RESPONSE = "ok";
 
 module.exports = {
 
-    companyCreated: (companyId) =>  {
+    companyCreated: (idCompany) =>  {
         return {
             status: CREATE_DATA_CODE,
             type: TYPE_RESPONSE,
-            message: `Company ${companyId} created successfuly`,
+            message: `Company ${idCompany} created successfully!`,
             data: null
         }
     },
 
-    findAllCompanies: (companiesResult) => {
+    findAllCompanies: (companies) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: "Get all companies successful",
-            data: companiesResult
+            message: "Get all companies successfully!",
+            data: companies
         }
     },
  
-    findOneCompany: (companyResult) => {
+    findOneCompany: (company) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: "Get company by id successful",
-            data: companyResult
+            message: "Get company by id successfully!",
+            data: company
         }
     },
 
-    updateOneCompany: (companyUpdatedId) => {
+    updateOneCompany: (idCompanyUpdated) => {
         return {
             status: CREATE_DATA_CODE,
             type: TYPE_RESPONSE,
-            message: `Updated boat ${companyUpdatedId} successfuly`,
+            message: `Updated boat ${idCompanyUpdated} successfully!`,
             data: null
         }
     },
 
-    deleteCompany: (companyDeleteId) => {
+    deleteCompany: (idCompanyDeleted) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: `Company ${companyDeleteId} was deleted successfully!`,
+            message: `Company ${idCompanyDeleted} was deleted successfully!`,
             data: null
         }
     }    

@@ -1,9 +1,10 @@
-const sql = require("./db.js");
+const pool = require("./db.js");
+const stringUtils = require("../utils/stringUtils");
 
-// constructor
 class Company {
     
     constructor(company) {
+        this.IdCompany = company.IdCompany;
         this.RazonSocial = company.RazonSocial;
         this.CUIT = company.CUIT;
         this.IsDeleted = company.IsDeleted;
@@ -12,88 +13,70 @@ class Company {
         this.TimeLastUpdate = company.TimeLastUpdate;
     }
 
-    static create(newCompany, result) {
-        sql.query("INSERT INTO company SET ?", newCompany, (queryError, queryResponse) => {
-
-            if (queryError) {
-                result(queryError, null);
-                return;
-            }
-
-            let companyCreated = { id: queryResponse.insertId, ...newCompany };
-            result(null, companyCreated);
-        });
+    static async create(newCompany) {
+        const queryResult = await pool.query("INSERT INTO company SET ?", newCompany);
+        return queryResult[0].affectedRows;
     }
 
-    static getAll(razonSocial, result) {
+    static async getAll(razonSocial) {
+
         let query = "SELECT * FROM company WHERE IsDeleted = 0";
         if (razonSocial) {
             query += ` AND RazonSocial LIKE '%${razonSocial}%'`;
         }
 
-        sql.query(query, (queryError, queryResponse) => {
+        const queryResult = await pool.query(query);
 
-            if (queryError) {
-                result(queryError, null);
-                return;
-            }
+        let companies = null;
+        if(queryResult[0].length){
+            companies = queryResult[0];
+        }
 
-            result(null, queryResponse);
-        });
+        return companies;
     }
 
-    static findById(idCompany, result) {
-        sql.query(`SELECT * FROM company WHERE IdCompany = ${idCompany}`, (queryError, queryResponse) => {
+    static async findById(idCompany) {
 
-            if(queryError){
-                result(queryError, null);
-                return;
-            }
-        
-            result(null, queryResponse);
-        });
+        const query = `SELECT * FROM company WHERE IdCompany = '${idCompany}'`;
+        const queryResult = await pool.query(query);
+
+        let company = null;
+        if(queryResult[0].length){
+            company = queryResult[0][0];
+        }
+
+        return company;
     }
     
-    static updateById(idCompany, company, result) {
-        sql.query(
-            "UPDATE company SET RazonSocial = ?, CUIT = ?, TimeLastUpdate = ? WHERE IdCompany = ? AND IsDeleted = 0",
-            [company.RazonSocial, company.CUIT, company.TimeLastUpdate, idCompany],
-            (queryError, queryResponse) => {
+    static async updateById(company) {
 
-                if (queryError) {
-                    result(queryError, null);
-                    return;
-                }
+        const { IdCompany, RazonSocial, CUIT, TimeLastUpdate } = company;
 
-                if (queryResponse.affectedRows == 0) {
-                    result({ kind: "not_found" }, null);
-                    return;
-                }
+        let query = `UPDATE company SET RazonSocial = '${RazonSocial}',
+            CUIT = ${CUIT}, 
+            TimeLastUpdate = ${TimeLastUpdate} 
+            WHERE IdCompany = '${IdCompany}' AND IsDeleted = 0`;
+        
+        query = stringUtils.cleanLineBreak(query);
+        const queryResponse = await pool.query(query);
 
-                result(null, { id: idCompany, ...company });
-            }
-        );
+        const affectedRows = queryResponse[0].affectedRows;
+        return affectedRows;
     }
 
-    static remove(idCompany, timeDeleted, result) {
-        sql.query(
-            "UPDATE company SET IsDeleted = 1, TimeDeleted = ? WHERE IdCompany = ? AND IsDeleted = 0", 
-            [timeDeleted,idCompany], 
-            (queryError, queryResponse) => {
+    static async remove(company) {
 
-                if (queryError) {
-                    result(queryError, null);
-                    return;
-                }
+        const { IdCompany, TimeDeleted } = company;
+        let query = `UPDATE company  
+            SET IsDeleted = 1, TimeDeleted = ${TimeDeleted} 
+            WHERE IdCompany = '${IdCompany}' AND IsDeleted = 0;`
 
-                if (queryResponse.affectedRows == 0) {
-                    result({ kind: "not_found" }, null);
-                    return;
-                }
+        query = stringUtils.cleanLineBreak(query);
 
-                result(null, queryResponse);
-            }
-        );
+        const queryResponse = await pool.query(query);
+
+        const affectedRows = queryResponse[0].affectedRows;
+        return affectedRows;
     }
 }
 

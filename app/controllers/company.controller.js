@@ -1,129 +1,166 @@
-const Company = require("../models/company.model.js");
-const companyErrors = require("../messages/errorMessages/errorsCompany.js");
-const companySuccessMessage = require("../messages/successMessages/successCompany.js");
+const Company = require("../models/company.model");
 
-function sendResponse(res, successResponseObj){
-    res.status(successResponseObj.status);
-    res.send(successResponseObj);
-}
+const companyErrors = require("../messages/errorMessages/errorsCompany");
+const companySuccessMessage = require("../messages/successMessages/successCompany");
 
+const idGenerator = require("../utils/idGenerator")
+const sendSuccessResponse = require("../messages/successMessages/sendSuccessResponse");
 
-exports.create = (req, res, next) => {
+exports.create = async (request, response, next) => {
 
-    if (Object.keys(req.body).length === 0){
+    const { body } = request;
+
+    if (Object.keys(body).length === 0){
         next(companyErrors.bodyEmpty);
         return;
-    } 
+    }
 
-    let nowTimestamp = Date.now();
+    const idCompany = idGenerator();
+    const nowTimestamp = Date.now();
+    const { razonSocial, cuit } = body;
+
     const company = new Company({
-        RazonSocial: req.body.RazonSocial,
-        CUIT: req.body.CUIT,
+        IdCompany: idCompany,
+        RazonSocial: razonSocial,
+        CUIT: cuit,
         IsDeleted: 0,
         TimeSave: nowTimestamp,
         TimeDeleted: null,
         TimeLastUpdate: null
     })
 
-    Company.create(company, (modelError, companyCreated) => {
-        if(modelError){
-            next(companyErrors.errorCreateCompany);
-            return;
-        }
-    
-        const successResponse = companySuccessMessage.companyCreated(companyCreated.id);
-        sendResponse(res, successResponse);
+    let internalError = null;
+    const affectedRows = await Company.create(company)
+    .catch( error => {
+        internalError = error;
     });
+
+    if(internalError || affectedRows === 0){
+        next(companyErrors.errorCreateCompany);
+        return;
+    }
+
+    const successMessage = companySuccessMessage.companyCreated(idCompany);
+    sendSuccessResponse(response, successMessage);     
 };
 
-exports.findAll = (req, res, next) => {
-    const razonSocial = req.body.RazonSocial;
+exports.findAll = async (request, response, next) => {
 
-    Company.getAll(razonSocial, (modelError, companiesList) => {
-        
-        if(modelError) {
-            next(companyErrors.errorFindAllCompany);
-            return;
-        }        
+    const { body } = request;
+    const { razonSocial } = body;
 
-        if(companiesList.length) {
-            const successResponse = companySuccessMessage.findAllCompanies(companiesList);
-            sendResponse(res, successResponse);
-            return;
-        }
-        
+    let internalError = null;
+    const companies = await Company.getAll(razonSocial)
+        .catch( error => {
+            internalError = error;
+        });
+
+    if(internalError){
+        next(companyErrors.errorFindAllCompany);
+        return;
+    }
+
+    if(!companies){
         next(companyErrors.notFound("findAll"));
-    });
+        return;
+    }
+
+    const successMessage = companySuccessMessage.findAllCompanies(companies);
+    sendSuccessResponse(response, successMessage);
 };
 
-exports.findOne = (req, res, next) => {
-    Company.findById(req.params.id, (modelError, companyResult) => {
+exports.findOne = async (request, response, next) => {
+    const { params } = request;
+    const idCompany = params.id;
 
-        if(modelError) {   
-            next(companyErrors.errorFindOneCompany(req.params.id));
-            return;
-        }
+    let internalError = null;
+    const company = await Company.findById(idCompany)
+        .catch(error => {
+            internalError = error;
+        });
 
-        if(companyResult.length){            
-            const successResponse = companySuccessMessage.findOneCompany(companyResult);
-            sendResponse(res, successResponse);
-            return;
-        }
-        
+    if(internalError){
+        next(companyErrors.errorFindOneCompany(idCompany));
+        return;
+    }
+
+    if(!company){
         next(companyErrors.notFound("findOneById"));
-    });
+        return;
+    }
 
+    const successMessage = companySuccessMessage.findOneCompany(company);
+    sendSuccessResponse(response, successMessage);
 };
 
-exports.update = (req, res, next) => {
+exports.update = async (request, response, next) => {
     
-    if(Object.keys(req.body).length === 0){
+    const { body, params } = request;
+
+    if(Object.keys(body).length === 0){
         next(companyErrors.bodyEmpty);
         return;
     }
 
-    let nowTimestamp = Date.now();
+    const idCompany = params.id;
+    const { razonSocial, cuit } = body;
+    const nowTimestamp = Date.now();
+
     const company = new Company({
-        RazonSocial: req.body.RazonSocial,
-        CUIT: req.body.CUIT,
+        IdCompany: idCompany,
+        RazonSocial: razonSocial,
+        CUIT: cuit,
         TimeLastUpdate: nowTimestamp
     })
 
-    Company.updateById( req.params.id, company, (modelError, companyUpdated) => {
+    let internalError = null;
+    const affectedRows = await Company.updateById(company)
+        .catch( error => {
+            internalError = error;
+        });
 
-        if(modelError){
+    if(internalError){
+        next(companyErrors.errorUpdateCompany(idCompany));
+        return;
+    }
 
-            if(modelError.kind === "not_found") {
-                next(companyErrors.notFound("updateById"));
-                return;
-            }
+    if(affectedRows === 0){
+        next(companyErrors.notFound("updatedById"));
+        return;
+    }
 
-            next(companyErrors.errorUpdateCompany(req.params.id));
-            return;
-        } 
-
-        const successResponse = companySuccessMessage.updateOneCompany(companyUpdated.id);
-        sendResponse(res, successResponse);        
-    });
+    const successMessage = companySuccessMessage.updateOneCompany(idCompany);
+    sendSuccessResponse(response, successMessage);
 };
 
-exports.delete = (req, res, next) => {
-    let timeDeleted = Date.now();
+exports.delete = async (request, response, next) => {
+    
+    const { params } = request;
 
-    Company.remove(req.params.id,  timeDeleted, (modelError, modelResponse) => {
+    const idCompany = params.id;
+    const timeDeleted = Date.now();
 
-        if(modelError){
-
-            if(modelError.kind === "not_found"){
-                next(companyErrors.notFound("deleteCompany"));
-                return;
-            }
-
-            next(companyErrors.errorDeleteCompany(req.params.id));
-            return;
-        } 
-
-        const successResponse = companySuccessMessage.deleteCompany(req.params.id);
-        sendResponse(res, successResponse);
+    const company = new Company({
+        IdCompany: idCompany,
+        TimeDeleted: timeDeleted
     });
+
+    let internalError = null;
+    const affectedRows = await Company.remove(company)
+        .catch( error => {
+            internalError = error;
+        });
+
+    if(internalError){
+        next(companyErrors.errorDeleteCompany(idCompany));
+        return;
+    }
+
+    if(affectedRows === 0){ 
+        next(companyErrors.notFound("deleteCompany"));
+        return;
+    }
+
+    const successMessage = companySuccessMessage.deleteCompany(idCompany);
+    sendSuccessResponse(response, successMessage);
 };

@@ -26,24 +26,24 @@ module.exports = {
         message: "Some error occurred while retrieving Companies."
     },
 
-    errorFindOneCompany: (paramIdCompany) => {
+    errorFindOneCompany: (idCompany) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Error retrieving Company with id ${paramIdCompany}`
+            message: `Error retrieving Company with id ${idCompany}`
         }
     },
 
-    errorUpdateCompany: (paramIdCompany) => {
+    errorUpdateCompany: (idCompany) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Error updating Company with ${paramIdCompany}.`
+            message: `Error updating Company with ${idCompany}.`
         }
     },
 
-    errorDeleteCompany: (paramIdCompany) => {
+    errorDeleteCompany: (idCompany) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Could not delete Company with id ${paramIdCompany}.`
+            message: `Could not delete Company with id ${idCompany}.`
         }
     }   
 }
