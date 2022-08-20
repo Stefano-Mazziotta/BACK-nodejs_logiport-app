@@ -26,24 +26,24 @@ module.exports = {
         message: "Some error occurred while retrieving Motors."
     },
 
-    errorFindOneMotor: (paramIdMotor) => {
+    errorFindOneMotor: (idMotor) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Error retrieving Motor with id ${paramIdMotor}`
+            message: `Error retrieving Motor with id: ${idMotor}`
         }
     },
 
-    errorUpdateMotor: (paramIdMotor) => {
+    errorUpdateMotor: (idMotor) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Error updating Motor with ${paramIdMotor}.`
+            message: `Error updating Motor with id: ${idMotor}.`
         }
     },
 
-    errorDeleteMotor: (paramIdMotor) => {
+    errorDeleteMotor: (idMotor) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Could not delete Motor with id ${paramIdMotor}.`
+            message: `Could not delete Motor with id: ${idMotor}.`
         }
     }   
 }

@@ -4,47 +4,47 @@ const TYPE_RESPONSE = "ok";
 
 module.exports = {
 
-    motorCreated: (MotorId) =>  {
+    motorCreated: (idMotor) =>  {
         return {
             status: CREATE_DATA_CODE,
             type: TYPE_RESPONSE,
-            message: `Motor ${MotorId} created successfuly`,
+            message: `Motor ${idMotor} created successfully.`,
             data: null
         }
     },
 
-    findAllMotors: (motorsResult) => {
+    findAllMotors: (motors) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: "Get all motors successful",
-            data: motorsResult
+            message: "Get all motors successfully.",
+            data: motors
         }
     },
  
-    findOneMotor: (motorResult) => {
+    findOneMotor: (motor) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: "Get motor by id successful",
-            data: motorResult
+            message: "Get motor by id successfully.",
+            data: motor
         }
     },
 
-    updateOneMotor: (motorUpdatedId) => {
+    updateOneMotor: (idMotor) => {
         return {
             status: CREATE_DATA_CODE,
             type: TYPE_RESPONSE,
-            message: `Updated motor ${motorUpdatedId} successfuly`,
+            message: `Updated motor ${idMotor} successfully.`,
             data: null
         }
     },
 
-    deleteMotor: (motorDeleteId) => {
+    deleteMotor: (idMotor) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: `Motor ${motorDeleteId} was deleted successfully!`,
+            message: `Motor ${idMotor} was deleted successfully!`,
             data: null
         }
     }    

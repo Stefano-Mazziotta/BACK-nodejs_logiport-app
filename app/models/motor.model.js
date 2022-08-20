@@ -1,13 +1,10 @@
-const sql = require("./db.js");
+const pool = require("./db.js");
+const stringUtils = require("../utils/stringUtils");
 
-function cleanLineBreak(str){
-    return str.replace(/(\r\n|\n|\r)/gm, "");
-}
-
-// constructor
 class Motor {
     
     constructor(motor) {
+        this.IdMotor = motor.IdMotor;
         this.IdBoat = motor.IdBoat;
         this.Quantity = motor.Quantity;
         this.Brand = motor.Brand;
@@ -21,57 +18,56 @@ class Motor {
         this.TimeDeleted = motor.TimeDeleted;
     }
 
-    static async create(newMotor, modelResponseCallback) {
-        sql.query("INSERT INTO motor SET ?", newMotor, (queryError, queryResponse) => {
+    static async create(newMotor) {
 
-            if (queryError) {
-                modelResponseCallback(queryError, null);
-                return;
-            }
-            let motorCreated = { id: queryResponse.insertId, ...newMotor };
-            modelResponseCallback(null, motorCreated);
-        });
+        const queryResult = await pool.query("INSERT INTO motor SET ?", newMotor);
+        const affectedRows = queryResult[0].affectedRows;
+
+        return affectedRows;
     }
 
-    static getAll(motorParams, modelResponseCallback) {
+    static async getAll(motorParams) {
+
+        const { IdCompany, IdBoat, NumberMotor } = motorParams;
+
         let query = `SELECT motor.*, boat.BoatName FROM motor
         INNER JOIN boat ON motor.IdBoat = boat.IdBoat 
-        WHERE motor.IsDeleted = 0 AND boat.IdCompany ='${motorParams.IdCompany}'`;
+        WHERE motor.IsDeleted = 0 AND boat.IdCompany ='${IdCompany}'`;
 
-        query = cleanLineBreak(query);
+        query = stringUtils.cleanLineBreak(query);
 
-        if (motorParams.IdBoat) {
-            query += ` AND IdBoat = '${motorParams.IdBoat}'`;
+        if (IdBoat) {
+            query += ` AND motor.IdBoat = '${IdBoat}'`;
         }
 
-        if (motorParams.NumberMotor) {
-            query += ` AND NumberMotor LIKE '%${motorParams.NumberMotor}%'`;
+        if (NumberMotor) {
+            query += ` AND motor.NumberMotor LIKE '%${NumberMotor}%'`;
         }
 
-        sql.query(query, (queryError, queryResponse) => {
+        const queryResult = await pool.query(query);
 
-            if (queryError) {
-                modelResponseCallback(queryError, null);
-                return;
-            }
+        let motors = null;
+        if(queryResult[0].length){
+            motors = queryResult[0];
+        }
 
-            modelResponseCallback(null, queryResponse);
-        });
+        return motors;
     }
 
-    static findById(IdMotor, modelResponseCallback) {
-        sql.query(`SELECT * FROM motor WHERE IsDeleted = 0 AND IdMotor = ${IdMotor}`, (queryError, queryResponse) => {
-
-            if(queryError){
-                modelResponseCallback(queryError, null);
-                return;
-            }
+    static async findById(idMotor) {
         
-            modelResponseCallback(null, queryResponse);
-        });
+        const query = `SELECT * FROM motor WHERE IsDeleted = 0 AND IdMotor = '${idMotor}'`;
+        const queryResult = await pool.query(query);
+
+        let motor = null;
+        if(queryResult[0].length){
+            motor = queryResult[0][0];
+        }
+
+        return motor;
     }
     
-    static updateById(IdMotor , motor, modelResponseCallback) {      
+    static async updateById(motor) {      
 
         let query = "UPDATE motor SET ";
         query += `IdBoat = '${motor.IdBoat}',`;
@@ -82,45 +78,24 @@ class Motor {
         query += `Type = '${motor.Type}',`;
         query += `Power = '${motor.Power}',`;
         query += `TimeLastUpdate = ${motor.TimeLastUpdate} `;
-        query += `WHERE IdMotor = ${IdMotor} AND IsDeleted = 0;`;
+        query += `WHERE IdMotor = '${motor.IdMotor}' AND IsDeleted = 0;`;
 
-        sql.query(query, (queryError, queryResponse) => {
+        const queryResult = await pool.query(query);
+        const affectedRows = queryResult[0].affectedRows;
 
-            if(queryError){
-                modelResponseCallback(queryError, null);
-                return;
-            }
-
-            if(queryResponse.affectedRows == 0){
-                modelResponseCallback({ kind: "not_found" }, null);
-                return;
-            }
-
-            console.log("updated motor: ", { id: IdMotor, ...motor });
-            modelResponseCallback(null, { id: IdMotor, ...motor });
-        });
+        return affectedRows;
     }
     
-    static remove(IdMotor, modelResponseCallback) {
-        let timeDeleted = Date.now();
+    static async remove(deleteParams) {
 
-        sql.query(
-            `UPDATE motor SET IsDeleted = 1, TimeDeleted = ${timeDeleted} WHERE IdMotor = ${IdMotor} AND IsDeleted = 0`, 
-            (queryError, queryResponse) => {
+        const { idMotor, timeDeleted } = deleteParams;
+        
+        const query = `UPDATE motor SET IsDeleted = 1, TimeDeleted = ${timeDeleted} WHERE IdMotor = '${idMotor}' AND IsDeleted = 0`;
+        const queryResult = await pool.query(query);
 
-                if (queryError) {
-                    modelResponseCallback(queryError, null);
-                    return;
-                }
+        const affectedRows = queryResult[0].affectedRows;
 
-                if (queryResponse.affectedRows == 0) {
-                    modelResponseCallback({ kind: "not_found" }, null);
-                    return;
-                }
-
-                modelResponseCallback(null, queryResponse);
-            }
-        );
+        return affectedRows;
     }
 }
 
