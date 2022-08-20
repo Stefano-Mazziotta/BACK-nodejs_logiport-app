@@ -1,9 +1,9 @@
-const sql = require("./db.js");
+const pool = require("./db.js");
 
-// constructor
 class Boat {
     
     constructor(boat) {
+        this.IdBoat = boat.IdBoat;
         this.IdCompany = boat.IdCompany;
         this.BoatName = boat.BoatName;
         this.Enrollment = boat.Enrollment;
@@ -28,107 +28,81 @@ class Boat {
         this.TimeDeleted = boat.TimeDeleted;
     }
 
-    static async create(newBoat, result) {
-        sql.query("INSERT INTO boat SET ?", newBoat, (queryError, queryResponse) => {
+    static async create(newBoat) {
 
-            if (queryError) {
-                result(queryError, null);
-                return;
-            }
-            let boatCreated = { id: queryResponse.insertId, ...newBoat };
-            result(null, boatCreated);
-        });
+        const queryResult = await pool.query("INSERT INTO boat SET ?", newBoat);
+        const affectedRows = queryResult[0].affectedRows;
+
+        return affectedRows;
     }
 
-    static getAll(boatParams, result) {
+    static async getAll(boatParams) {
+
         let query = `SELECT * FROM boat WHERE IsDeleted = 0 AND IdCompany ='${boatParams.IdCompany}'`;
         if (boatParams.BoatName) {
             query += ` AND BoatName LIKE '%${boatParams.BoatName}%'`;
         }
 
-        sql.query(query, (queryError, queryResponse) => {
+        const queryResult = await pool.query(query);
 
-            if (queryError) {
-                result(queryError, null);
-                return;
-            }
+        let boats = null;
+        if(queryResult[0].length){
+            boats = queryResult[0];
+        }
 
-            result(null, queryResponse);
-        });
+        return boats;
     }
 
-    static findById(IdBoat, result) {
-        sql.query(`SELECT * FROM boat WHERE IsDeleted = 0 AND IdBoat = ${IdBoat}`, (queryError, queryResponse) => {
+    static async findById(idBoat) {
 
-            if(queryError){
-                result(queryError, null);
-                return;
-            }
-        
-            result(null, queryResponse);
-        });
+        const queryResult = await pool.query(`SELECT * FROM boat WHERE IsDeleted = 0 AND IdBoat = '${idBoat}'`);
+
+        let boat = null;
+        if(queryResult[0].length){
+            boat = queryResult[0][0];
+        }
+
+        return boat;
     }
     
-    static updateById(IdBoat, boat, result) {
+    static async updateById(boat) {
 
         let query = "UPDATE boat SET ";
-        query += `BoatName = '${boat.BoatName}',`;
-        query += `Enrollment = '${boat.Enrollment}',`;
-        query += `DistinguishingMark = '${boat.DistinguishingMark}',`;
-        query += `HullMaterial = '${boat.HullMaterial}',`;
-        query += `BoatType = '${boat.BoatType}',`;  
-        query += `Service = '${boat.Service}',`;
-        query += `SpecificExploitation = '${boat.SpecificExploitation}',`;
-        query += `EnrollmentDate = '${boat.EnrollmentDate}',`;          
-        query += `ConstructionDate = '${boat.ConstructionDate},'`;
-        query += `NAT = ${boat.NAT},`;
-        query += `NAN = ${boat.NAN}`;       
-        query += `Eslora = ${boat.Eslora},`;
-        query += `Manga = ${boat.Manga}`;
-        query += `Puntal = ${boat.Puntal},`;           
-        query += `PeopleTransported = ${boat.PeopleTransported},`;
-        query += `BoatPower = '${boat.BoatPower}',`;
-        query += `ElectricPower = '${boat.ElectricPower}',`;
-        query += `TimeLastUpdate = ${boat.TimeLastUpdate}`;
-        query += `WHERE IdBoat = ${IdBoat} AND IsDeleted = 0;`;
+        query += `BoatName = '${boat.BoatName}', `;
+        query += `Enrollment = '${boat.Enrollment}', `;
+        query += `DistinguishingMark = '${boat.DistinguishingMark}', `;
+        query += `HullMaterial = '${boat.HullMaterial}', `;
+        query += `BoatType = '${boat.BoatType}', `;  
+        query += `Service = '${boat.Service}', `;
+        query += `SpecificExploitation = '${boat.SpecificExploitation}', `;
+        query += `EnrollmentDate = ${boat.EnrollmentDate}, `;          
+        query += `ConstructionDate = ${boat.ConstructionDate}, `;
+        query += `NAT = ${boat.NAT}, `;
+        query += `NAN = ${boat.NAN}, `;       
+        query += `Eslora = ${boat.Eslora}, `;
+        query += `Manga = ${boat.Manga}, `;
+        query += `Puntal = ${boat.Puntal}, `;           
+        query += `PeopleTransported = ${boat.PeopleTransported}, `;
+        query += `BoatPower = '${boat.BoatPower}', `;
+        query += `ElectricPower = '${boat.ElectricPower}', `;
+        query += `TimeLastUpdate = ${boat.TimeLastUpdate} `;
+        query += `WHERE IdBoat = '${boat.IdBoat}' AND IsDeleted = 0;`;
 
-        sql.query(query, (queryError, queryResponse) => {
-
-            if(queryError){
-                result(queryError, null);
-                return;
-            }
-
-            if(queryResponse.affectedRows == 0){
-                result({ kind: "not_found" }, null);
-                return;
-            }
-
-            console.log("updated boat: ", { id: IdBoat, ...boat });
-            result(null, { id: IdBoat, ...boat });
-        });
+        const queryResult = await pool.query(query);
+        const affectedRows = queryResult[0].affectedRows;      
+        
+        return affectedRows;
     }
     
-    static remove(IdBoat, result) {
-        let timeDeleted = Date.now();
+    static async remove(idBoat) {
+        
+        const timeDeleted = Date.now();
 
-        sql.query(
-            `UPDATE boat SET IsDeleted = 1, TimeDeleted = ${timeDeleted} WHERE IdBoat = ${IdBoat} AND IsDeleted = 0`, 
-            (queryError, queryResponse) => {
+        const query = `UPDATE boat SET IsDeleted = 1, TimeDeleted = ${timeDeleted} WHERE IdBoat = '${idBoat}' AND IsDeleted = 0`;
+        const queryResult = await pool.query(query);
 
-                if (queryError) {
-                    result(queryError, null);
-                    return;
-                }
-
-                if (queryResponse.affectedRows == 0) {
-                    result({ kind: "not_found" }, null);
-                    return;
-                }
-
-                result(null, queryResponse);
-            }
-        );
+        const affectedRows = queryResult[0].affectedRows;
+        return affectedRows;
     }
 }
 

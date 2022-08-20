@@ -4,52 +4,48 @@ const TYPE_RESPONSE = "ok";
 
 module.exports = {
 
-    boatCreated: (boatId) =>  {
+    boatCreated: (idBoat) =>  {
         return {
             status: CREATE_DATA_CODE,
             type: TYPE_RESPONSE,
-            message: `boat ${boatId} created successfuly`,
+            message: `Boat ${idBoat} created successfully.`,
             data: null
         }
     },
 
-    findAllBoats: (boatsResult) => {
+    findAllBoats: (boats) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: "Get all boats successful",
-            data: boatsResult
+            message: "Get all boats successfully.",
+            data: boats
         }
     },
 
-    findOneBoat: (boatResult) => {
+    findOneBoat: (boat) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: "get boat by id successful",
-            data: boatResult
+            message: "get boat by id successfully.",
+            data: boat
         }
     },
 
-    updateOneBoat: (boatUpdatedId) => {
+    updateOneBoat: (idBoatUpdated) => {
         return {
             status: CREATE_DATA_CODE,
             type: TYPE_RESPONSE,
-            message: `Updated boat ${boatUpdatedId} successfuly`,
+            message: `Updated boat ${idBoatUpdated} successfully.`,
             data: null
         }
     },
 
-    deleteBoat: (boatDeleteId) => {
+    deleteBoat: (idBoatDeleted) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: `Boat ${boatDeleteId} was deleted successfully!`,
+            message: `Boat ${idBoatDeleted} was deleted successfully!`,
             data: null
         }
-    }
-
-
-
-    
+    }    
 }

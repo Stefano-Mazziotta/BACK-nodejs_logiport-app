@@ -26,24 +26,24 @@ module.exports = {
         message: "Some error occurred while retrieving boats."
     },
 
-    errorFindOneBoat: (paramIdBoat) => {
+    errorFindOneBoat: (idBoat) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Error retrieving Boat with id ${paramIdBoat}`
+            message: `Error retrieving Boat with id ${idBoat}`
         }
     },
 
-    errorUpdateBoat: (paramIdBoat) => {
+    errorUpdateBoat: (idBoat) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Error updating Boat with ${paramIdBoat}.`
+            message: `Error updating Boat with ${idBoat}.`
         }
     },
 
-    errorDeleteBoat: (paramIdBoat) => {
+    errorDeleteBoat: (idBoat) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Could not delete Boat with id ${paramIdBoat}.`
+            message: `Could not delete Boat with id ${idBoat}.`
         }
     }
     

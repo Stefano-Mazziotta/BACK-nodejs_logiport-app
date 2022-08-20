@@ -1,39 +1,43 @@
 const Boat = require("../models/boat.model.js");
+
 const boatErrors = require("../messages/errorMessages/errorsBoat.js");
 const boatSuccessMessage = require("../messages/successMessages/successBoat.js");
 
-function sendResponse(res, successResponseObj){
-    res.status(successResponseObj.status);
-    res.send(successResponseObj);
-}
+const idGenerator = require("../utils/idGenerator")
+const sendSuccessResponse = require("../messages/successMessages/sendSuccessResponse");
 
-exports.create = (req, res, next) => {
+exports.create = async (request, response, next) => {
 
-    if (Object.keys(req.body).length === 0){
+    const { body } = request;
+
+    if (Object.keys(body).length === 0){
         next(boatErrors.bodyEmpty);
         return;
-    } 
+    }
 
     const nowTimestamp = Date.now();
+    const idBoat = idGenerator();
+
     const boatConstructor = {
-        IdCompany: req.body.IdCompany,
-        BoatName: req.body.BoatName,
-        Enrollment: req.body.Enrollment,
-        DistinguishingMark: req.body.DistinguishingMark, 
-        HullMaterial: req.body.HullMaterial,
-        BoatType: req.body.BoatType,
-        Service: req.body.Service,
-        SpecificExploitation: req.body.SpecificExploitation,
-        EnrollmentDate: req.body.EnrollmentDate,
-        ConstructionDate: req.body.ConstructionDate,
-        NAT: req.body.NAT,
-        NAN: req.body.NAN,
-        Eslora: req.body.Eslora,
-        Manga: req.body.Manga,
-        Puntal: req.body.Puntal,
-        PeopleTransported: req.body.PeopleTransported,
-        BoatPower: req.body.BoatPower,
-        ElectricPower: req.body.ElectricPower,
+        IdBoat: idBoat,
+        IdCompany: body.IdCompany,
+        BoatName: body.BoatName,
+        Enrollment: body.Enrollment,
+        DistinguishingMark: body.DistinguishingMark, 
+        HullMaterial: body.HullMaterial,
+        BoatType: body.BoatType,
+        Service: body.Service,
+        SpecificExploitation: body.SpecificExploitation,
+        EnrollmentDate: body.EnrollmentDate,
+        ConstructionDate: body.ConstructionDate,
+        NAT: body.NAT,
+        NAN: body.NAN,
+        Eslora: body.Eslora,
+        Manga: body.Manga,
+        Puntal: body.Puntal,
+        PeopleTransported: body.PeopleTransported,
+        BoatPower: body.BoatPower,
+        ElectricPower: body.ElectricPower,
         IsDeleted: 0,
         TimeSave: nowTimestamp,
         TimeDeleted: null,
@@ -41,126 +45,154 @@ exports.create = (req, res, next) => {
     }
     const boat = new Boat(boatConstructor);
 
-    Boat.create(boat, (modelError, modelResponse) => {
-
-        if (modelError) {
-            next(boatErrors.errorCreateBoat);
-            return;
-        } 
-        console.log(`boat ${modelResponse.id} created successfuly`);
-        let successResponse = boatSuccessMessage.boatCreated(modelResponse.id);
-        sendResponse(res, successResponse);                 
-    });
-};
-
-exports.findAll = (req, res, next) => {
+    let internalError = null;
+    const affectedRows = await Boat.create(boat)
+        .catch( error => {
+            internalError = error;
+        })
     
-    const boatParams = {
-        IdCompany: req.query.IdCompany,
-        BoatName: req.query.BoatName,
-    }
-
-    Boat.getAll(boatParams, (modelError, boatsResult) => {
-
-        if(modelError) {
-            next(boatErrors.errorFindAllBoats);
-            return;
-        }        
-
-        if(boatsResult.length) {
-            let successResponse = boatSuccessMessage.findAllBoats(boatsResult);
-            sendResponse(res, successResponse);
-            return;
-        }
-        
-        next(boatErrors.notFound("findAll"));
-    });
-};
-
-exports.findOne = (req, res, next) => {
-    Boat.findById(req.params.id, (modelError, boatResult) => {
-        
-        if(modelError) {   
-            next(boatErrors.errorFindOneBoat(req.params.id));
-            return;
-        }
-
-        if(boatResult.length){            
-            let successResponse = boatSuccessMessage.findOneBoat(boatResult);
-            sendResponse(res, successResponse);
-            return;
-        }
-        
-        next(boatErrors.notFound("findOneById"));
-    });
-};
-
-exports.update = (req, res, next) => {
-
-    if(Object.keys(req.body).length === 0){
-        next(boatErrors.bodyEmpty)
+    if(internalError || affectedRows === 0){
+        next(boatErrors.errorCreateBoat);
         return;
     }
 
-    let nowTimestamp = Date.now();
+    const successMessage = boatSuccessMessage.boatCreated(idBoat);
+    sendSuccessResponse(response, successMessage);
+};
+
+exports.findAll = async (request, response, next) => {
+
+    const { body } = request;
+    const { idCompany, boatName } = body;
+
+    const boatParams = {
+        IdCompany: idCompany,
+        BoatName: boatName
+    }
+
+    let internalError = null;
+    const boats = await Boat.getAll(boatParams)
+        .catch( error => {
+            internalError = error;
+        });
+    
+    if(internalError){
+        next(boatErrors.errorFindAllBoats);
+        return;
+    }
+
+    if(!boats){
+        next(boatErrors.notFound("findAllBoats"));
+        return;
+    }
+
+    const successMessage = boatSuccessMessage.findAllBoats(boats);
+    sendSuccessResponse(response, successMessage);
+};
+
+exports.findOne = async (request, response, next) => {
+
+    const { params } = request;
+    const idBoat = params.id;
+
+    let internalError = null;
+    const boat = await Boat.findById(idBoat)
+        .catch( error => {
+            internalError = error;
+        });
+
+    if(internalError){
+        next(boatErrors.errorFindOneBoat(idBoat));
+        return;
+    }
+
+    if(!boat){
+        next(boatErrors.notFound("findOneById"));
+        return;
+    }
+
+    const successMessage = boatSuccessMessage.findOneBoat(boat);
+    sendSuccessResponse(response, successMessage);
+};
+
+exports.update = async (request, response, next) => {
+
+    const { body, params } = request;   
+
+    if(Object.keys(body).length === 0){
+        next(boatErrors.bodyEmpty)
+        return;
+    }
+    const idBoat = params.id;
+    const nowTimestamp = Date.now();
+
     const boat = new Boat({
-        IdCompany: req.body.IdCompany,
-        BoatName: req.body.BoatName,
-        Enrollment: req.body.Enrollment,
-        DistinguishingMark: req.body.DistinguishingMark, 
-        HullMaterial: req.body.HullMaterial,
-        BoatType: req.body.BoatType,
-        Service: req.body.Service,
-        SpecificExploitation: req.body.SpecificExploitation,
-        EnrollmentDate: req.body.EnrollmentDate,
-        ConstructionDate: req.body.ConstructionDate,
-        NAT: req.body.NAT,
-        NAN: req.body.NAN,
-        Eslora: req.body.Eslora,
-        Manga: req.body.Manga,
-        Puntal: req.body.Puntal,
-        PeopleTransported: req.body.PeopleTransported,
-        BoatPower: req.body.BoatPower,
-        ElectricPower: req.body.ElectricPower,
+        IdBoat: idBoat,
+        IdCompany: body.IdCompany,
+        BoatName: body.BoatName,
+        Enrollment: body.Enrollment,
+        DistinguishingMark: body.DistinguishingMark, 
+        HullMaterial: body.HullMaterial,
+        BoatType: body.BoatType,
+        Service: body.Service,
+        SpecificExploitation: body.SpecificExploitation,
+        EnrollmentDate: body.EnrollmentDate,
+        ConstructionDate: body.ConstructionDate,
+        NAT: body.NAT,
+        NAN: body.NAN,
+        Eslora: body.Eslora,
+        Manga: body.Manga,
+        Puntal: body.Puntal,
+        PeopleTransported: body.PeopleTransported,
+        BoatPower: body.BoatPower,
+        ElectricPower: body.ElectricPower,
         IsDeleted: 0,
         TimeSave: null,
         TimeDeleted: null,
         TimeLastUpdate: nowTimestamp
     });
 
-    Boat.updateById(req.params.id, boat, (modelError, boatUpdated) => {
+    let internalError = null;
+    const affectedRows = await Boat.updateById(boat)
+        .catch( error => {
+            internalError = error;
+        });
+    
+    if(internalError){
+        next(boatErrors.errorUpdateBoat(idBoat));
+        return;
+    }
 
-        if(modelError){
+    if(affectedRows === 0){
+        next(boatErrors.notFound("updateById"));
+        return;
+    }
 
-            if(modelError.kind === "not_found") {
-                next(boatErrors.notFound("updateById"));
-                return;
-            }
-
-            next(boatErrors.errorUpdateBoat(req.params.id));
-            return;
-        } 
-
-        let successResponse = boatSuccessMessage.updateOneBoat(boatUpdated.id);
-        sendResponse(res, successResponse);
-    });
+    const successMessage = boatSuccessMessage.updateOneBoat(idBoat);
+    sendSuccessResponse(response, successMessage);
 };
 
-exports.delete = (req, res, next) => {
+exports.delete = async (request, response, next) => {
     
-    Boat.remove(req.params.id, (modelError, modelResponse) => {
+    const { params } = request;
+    const idBoat = params.id;
 
-        if(modelError){
-            if(modelError.kind === "not_found"){
-                next(boatErrors.notFound("deleteBoat"));
-                return;
-            }
+    let internalError = null;
+    const affectedRows = await Boat.remove(idBoat)
+        .catch( error => {
+            internalError = error;
+        });
 
-            next(boatErrors.errorDeleteBoat(req.params.id));
-            return;
-        } 
+    if(internalError){
+        next(boatErrors.errorDeleteBoat(idBoat));
+        return;
+    }
 
-        let successResponse = boatSuccessMessage.deleteBoat(req.params.id);
-        sendResponse(res, successResponse);
-    });
+    if(affectedRows === 0){
+        next(boatErrors.notFound("deleteBoat"));
+        return;
+    }
+
+    const successMessage = boatSuccessMessage.deleteBoat(idBoat);
+    sendSuccessResponse(response, successMessage);
 };
