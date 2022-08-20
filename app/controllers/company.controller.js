@@ -31,9 +31,9 @@ exports.create = async (request, response, next) => {
 
     let internalError = null;
     const affectedRows = await Company.create(company)
-    .catch( error => {
-        internalError = error;
-    });
+        .catch( error => {
+            internalError = error;
+        });
 
     if(internalError || affectedRows === 0){
         next(companyErrors.errorCreateCompany);
