@@ -1,13 +1,10 @@
-const sql = require("./db.js");
+const pool = require("./db.js");
+const stringUtils = require("../utils/stringUtils");
 
-function cleanLineBreak(str){
-    return str.replace(/(\r\n|\n|\r)/gm, "");
-}
-
-// constructor
 class Generator {
     
     constructor(generator) {
+        this.IdGenerator = generator.IdGenerator;
         this.IdBoat = generator.IdBoat;
         this.Quantity = generator.Quantity;
         this.Brand = generator.Brand;
@@ -21,57 +18,56 @@ class Generator {
         this.TimeDeleted = generator.TimeDeleted;
     }
 
-    static async create(newGenerator, modelResponseCallback) {
-        sql.query("INSERT INTO generator SET ?", newGenerator, (queryError, queryResponse) => {
+    static async create(newGenerator) {
+        
+        const queryResult = await pool.query("INSERT INTO generator SET ?", newGenerator);
+        const affectedRows = queryResult[0].affectedRows;
 
-            if (queryError) {
-                modelResponseCallback(queryError, null);
-                return;
-            }
-            let generatorCreated = { id: queryResponse.insertId, ...newGenerator };
-            modelResponseCallback(null, generatorCreated);
-        });
+        return affectedRows;
     }
 
-    static getAll(generatorParams, modelResponseCallback) {
+    static async getAll(getAllParams) {
+
+        const { idCompany, idBoat, numberGenerator } = getAllParams;
+
         let query = `SELECT generator.*, boat.BoatName FROM generator
         INNER JOIN boat ON generator.IdBoat = boat.IdBoat 
-        WHERE generator.IsDeleted = 0 AND boat.IdCompany ='${generatorParams.IdCompany}'`;
+        WHERE generator.IsDeleted = 0 AND boat.IdCompany ='${idCompany}'`;
 
-        query = cleanLineBreak(query);
+        query = stringUtils.cleanLineBreak(query);
 
-        if (generatorParams.IdBoat) {
-            query += ` AND IdBoat = '${generatorParams.IdBoat}'`;
+        if (idBoat) {
+            query += ` AND generator.IdBoat = '${idBoat}'`;
         }
 
-        if (generatorParams.NumberGenerator) {
-            query += ` AND NumberGenerator LIKE '%${generatorParams.NumberGenerator}%'`;
+        if (numberGenerator) {
+            query += ` AND generator.NumberGenerator LIKE '%${numberGenerator}%'`;
         }
 
-        sql.query(query, (queryError, queryResponse) => {
+        const queryResult = await pool.query(query);
+        
+        let generators = null
+        if(queryResult[0].length){
+            generators = queryResult[0];
+        }
 
-            if (queryError) {
-                modelResponseCallback(queryError, null);
-                return;
-            }
-
-            modelResponseCallback(null, queryResponse);
-        });
+        return generators;
     }
 
-    static findById(idGenerator, modelResponseCallback) {
-        sql.query(`SELECT * FROM generator WHERE IsDeleted = 0 AND IdGenerator = ${idGenerator}`, (queryError, queryResponse) => {
-
-            if(queryError){
-                modelResponseCallback(queryError, null);
-                return;
-            }
+    static async findById(idGenerator) {
         
-            modelResponseCallback(null, queryResponse);
-        });
+        const query = `SELECT * FROM generator WHERE IsDeleted = 0 AND IdGenerator = '${idGenerator}'`;
+        const queryResult = await pool.query(query);
+
+        let generator = null;
+        if(queryResult[0].length){
+            generator = queryResult[0][0];
+        }
+
+        return generator;       
     }
     
-    static updateById(idGenerator , generator, modelResponseCallback) {      
+    static async updateById(generator) {      
 
         let query = "UPDATE generator SET ";
         query += `IdBoat = '${generator.IdBoat}',`;
@@ -82,45 +78,23 @@ class Generator {
         query += `Type = '${generator.Type}',`;
         query += `Power = '${generator.Power}',`;
         query += `TimeLastUpdate = ${generator.TimeLastUpdate} `;
-        query += `WHERE IdGenerator = ${idGenerator} AND IsDeleted = 0;`;
+        query += `WHERE IdGenerator = '${generator.IdGenerator}' AND IsDeleted = 0;`;
 
-        sql.query(query, (queryError, queryResponse) => {
+        const queryResult = await pool.query(query);
+        const affectedRows = queryResult[0].affectedRows;
 
-            if(queryError){
-                modelResponseCallback(queryError, null);
-                return;
-            }
-
-            if(queryResponse.affectedRows == 0){
-                modelResponseCallback({ kind: "not_found" }, null);
-                return;
-            }
-
-            console.log("Updated generator: ", { id: idGenerator, ...generator });
-            modelResponseCallback(null, { id: idGenerator, ...generator });
-        });
+        return affectedRows;
     }
     
-    static remove(idGenerator, modelResponseCallback) {
-        let timeDeleted = Date.now();
+    static async remove(deleteParams) {
 
-        sql.query(
-            `UPDATE generator SET IsDeleted = 1, TimeDeleted = ${timeDeleted} WHERE IdGenerator = ${idGenerator} AND IsDeleted = 0`, 
-            (queryError, queryResponse) => {
+        const { idGenerator, timeDeleted } = deleteParams;
 
-                if (queryError) {
-                    modelResponseCallback(queryError, null);
-                    return;
-                }
+        const query = `UPDATE generator SET IsDeleted = 1, TimeDeleted = ${timeDeleted} WHERE IdGenerator = '${idGenerator}' AND IsDeleted = 0`;
+        const queryResult = await pool.query(query);
 
-                if (queryResponse.affectedRows == 0) {
-                    modelResponseCallback({ kind: "not_found" }, null);
-                    return;
-                }
-
-                modelResponseCallback(null, queryResponse);
-            }
-        );
+        const affectedRows = queryResult[0].affectedRows;
+        return affectedRows;
     }
 }
 

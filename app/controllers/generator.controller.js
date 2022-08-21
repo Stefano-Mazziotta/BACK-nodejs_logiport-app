@@ -1,28 +1,32 @@
-const Generator = require("../models/generator.model.js");
-const generatorErrors = require("../messages/errorMessages/errorsGenerator.js");
-const generatorSuccessMessage = require("../messages/successMessages/successGenerator.js");
+const Generator = require("../models/generator.model");
 
-function sendResponse(res, successResponseObj){
-    res.status(successResponseObj.status);
-    res.send(successResponseObj);
-}
+const generatorErrors = require("../messages/errorMessages/errorsGenerator");
+const generatorSuccessMessage = require("../messages/successMessages/successGenerator");
 
-exports.create = (req, res, next) => {
+const getRandomId = require("../utils/idGenerator");
+const sendSuccessResponse = require("../messages/successMessages/sendSuccessResponse");
 
-    if (Object.keys(req.body).length === 0){
+exports.create =  async (request, response, next) => {
+
+    const { body } = request;
+
+    if (Object.keys(body).length === 0){
         next(generatorErrors.bodyEmpty);
         return;
     } 
 
+    const idGenerator = getRandomId();
     const nowTimestamp = Date.now();
+
     const generatorConstructor = {
-        IdBoat: req.body.IdBoat,
-        Quantity: req.body.Quantity,
-        Brand: req.body.Brand,
-        NumberGenerator: req.body.NumberGenerator,
-        Model: req.body.Model,
-        Type: req.body.Type, 
-        Power: req.body.Power,
+        IdGenerator: idGenerator,
+        IdBoat: body.IdBoat,
+        Quantity: body.Quantity,
+        Brand: body.Brand,
+        NumberGenerator: body.NumberGenerator,
+        Model: body.Model,
+        Type: body.Type, 
+        Power: body.Power,
         IsDeleted: 0,
         TimeSave: nowTimestamp,
         TimeDeleted: null,
@@ -30,127 +34,158 @@ exports.create = (req, res, next) => {
     }
     const generator = new Generator(generatorConstructor);
 
-    const modelResponseCallback = (modelError, modelResponse) => {
+    let internalError = null;
+    const affectedRows = await Generator.create(generator)
+        .catch( error => {
+            internalError = error;
+        });
 
-        if (modelError) {
-            next(generatorErrors.errorCreateGenerator);
-            return;
-        } 
-
-        let successResponse = generatorSuccessMessage.generatorCreated(modelResponse.id);
-        sendResponse(res, successResponse);                 
+    if(internalError || affectedRows === 0){
+        next(generatorErrors.errorCreateGenerator);
+        return;
     }
 
-    Generator.create(generator, modelResponseCallback);
+    const successMessage = generatorSuccessMessage.generatorCreated(idGenerator);
+    sendSuccessResponse(response, successMessage);
 };
 
-exports.findAll = (req, res, next) => {
+exports.findAll = async (request, response, next) => {
+
+    const { body } = request;
+
+    if (Object.keys(body).length === 0){
+        next(generatorErrors.bodyEmpty);
+        return;
+    } 
+
+    const { idCompany, idBoat, numberGenerator} = body;
     
-    const generatorParams = {
-        IdCompany: req.body.IdCompany,
-        IdBoat: req.body.IdBoat,
-        NumberGenerator: req.body.NumberGenerator,
+    const getAllParams = {
+        idCompany: idCompany,
+        idBoat: idBoat,
+        numberGenerator: numberGenerator
     }
 
-    const modelResponseCallback = (modelError, generatorsResult) => {
+    let internalError = null;
+    const generators = await Generator.getAll(getAllParams)
+        .catch( error => {
+            internalError = error;
+        });
+    
+    if(internalError){
+        next(generatorErrors.errorFindAllGenerators);
+        return;
+    }
 
-        if(modelError) {
-            next(generatorErrors.errorFindAllGenerators);
-            return;
-        }        
-
-        if(generatorsResult.length) {
-            let successResponse = generatorSuccessMessage.findAllGenerators(generatorsResult);
-            sendResponse(res, successResponse);
-            return;
-        }
-        
+    if(!generators){
         next(generatorErrors.notFound("findAll"));
+        return;
     }
 
-    Generator.getAll(generatorParams, modelResponseCallback);
+    const successMessage = generatorSuccessMessage.findAllGenerators(generators);
+    sendSuccessResponse(response , successMessage);
 };
 
-exports.findOne = (req, res, next) => {
+exports.findOne = async (request, response, next) => {
 
-    const modelResponseCallback = (modelError, generatorResult) => {
-        
-        if(modelError) {   
-            next(generatorErrors.errorFindOneGenerator(req.params.id));
-            return;
-        }
+    const { params } = request;
+    const idGenerator = params.id;
 
-        if(generatorResult.length){            
-            let successResponse = generatorSuccessMessage.findOneGenerator(generatorResult);
-            sendResponse(res, successResponse);
-            return;
-        }
-        
+    let internalError = null;
+    const generator = await Generator.findById(idGenerator)
+        .catch( error => {
+            internalError = error;
+        });
+    
+    if(internalError){
+        next(generatorErrors.errorFindOneGenerator(idGenerator));
+        return;
+    }
+
+    if(!generator){
         next(generatorErrors.notFound("findOneById"));
+        return;
     }
 
-    Generator.findById(req.params.id, modelResponseCallback);
+    const successMessage = generatorSuccessMessage.findOneGenerator(generator);
+    sendSuccessResponse(response, successMessage);
 };
 
-exports.update = (req, res, next) => {
+exports.update = async (request, response, next) => {
 
-    if(Object.keys(req.body).length === 0){
+    const { body, params } = request
+
+    if(Object.keys(body).length === 0){
         next(generatorErrors.bodyEmpty)
         return;
     }
 
-    let nowTimestamp = Date.now();
+    const idGenerator = params.id;
+    const nowTimestamp = Date.now();
+
     const generator = new Generator({
-        IdBoat: req.body.IdBoat,
-        Quantity: req.body.Quantity,
-        Brand: req.body.Brand,
-        NumberGenerator: req.body.NumberGenerator,
-        Model: req.body.Model,
-        Type: req.body.Type, 
-        Power: req.body.Power,    
+        IdGenerator: idGenerator,
+        IdBoat: body.IdBoat,
+        Quantity: body.Quantity,
+        Brand: body.Brand,
+        NumberGenerator: body.NumberGenerator,
+        Model: body.Model,
+        Type: body.Type, 
+        Power: body.Power,    
         IsDeleted: 0,
         TimeSave: null,
         TimeDeleted: null,
         TimeLastUpdate: nowTimestamp
     });
 
-    const modelResponseCallback = (modelError, generatorUpdated) => {
-
-        if(modelError){
-
-            if(modelError.kind === "not_found") {
-                next(generatorErrors.notFound("updateById"));
-                return;
-            }
-            
-            next(generatorErrors.errorUpdateGenerator(req.params.id));
-            return;
-        } 
-
-        let successResponse = generatorSuccessMessage.updateOneGenerator(generatorUpdated.id);
-        sendResponse(res, successResponse);
+    let internalError = null;
+    const affectedRows = await Generator.updateById(generator)
+        .catch( error => {
+            internalError = error;
+        });
+    
+    if(internalError){
+        next(generatorErrors.errorUpdateGenerator(idGenerator));
+        return;
     }
 
-    Generator.updateById(req.params.id, generator, modelResponseCallback);
+    if(affectedRows === 0){
+        next(generatorErrors.notFound("updateById"));
+        return;
+    }
+    
+    const successMessage = generatorSuccessMessage.updateOneGenerator(idGenerator);
+    sendSuccessResponse(response, successMessage);
 };
 
-exports.delete = (req, res, next) => {
+exports.delete = async (request, response, next) => {
 
-    const modelResponseCallback = (modelError, modelResponse) => {
+    const { params } = request;
 
-        if(modelError){
-            if(modelError.kind === "not_found"){
-                next(generatorErrors.notFound("deleteGenerator"));
-                return;
-            }
+    const idGenerator = params.id;
+    const nowTimestamp = Date.now();
 
-            next(generatorErrors.errorDeleteGenerator(req.params.id));
-            return;
-        } 
-
-        let successResponse = generatorSuccessMessage.deleteGenerator(req.params.id);
-        sendResponse(res, successResponse);
+    const deleteParams = {
+        idGenerator: idGenerator,
+        timeDeleted: nowTimestamp
     }
 
-    Generator.remove(req.params.id, modelResponseCallback);
+    let internalError = null;
+    const affectedRows = await Generator.remove(deleteParams)
+        .catch( error => {
+            internalError = error;
+        });
+
+    if(internalError){
+        next(generatorErrors.errorDeleteGenerator(idGenerator));
+        return;
+    }
+
+    if(affectedRows === 0){
+        next(generatorErrors.notFound("deleteGenerator"));
+        return;
+    }
+
+    const successMessage = generatorSuccessMessage.deleteGenerator(idGenerator);
+    sendSuccessResponse(response, successMessage);
 };

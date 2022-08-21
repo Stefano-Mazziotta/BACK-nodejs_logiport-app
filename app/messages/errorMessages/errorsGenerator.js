@@ -26,24 +26,24 @@ module.exports = {
         message: "Some error occurred while retrieving Generators."
     },
 
-    errorFindOneGenerator: (paramIdGenerator) => {
+    errorFindOneGenerator: (idGenerator) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Error retrieving Generator with id ${paramIdGenerator}`
+            message: `Error retrieving Generator with id '${idGenerator}'.`
         }
     },
 
-    errorUpdateGenerator: (paramIdGenerator) => {
+    errorUpdateGenerator: (idGenerator) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Error updating Generator with ${paramIdGenerator}.`
+            message: `Error updating Generator with id '${idGenerator}'.`
         }
     },
 
-    errorDeleteGenerator: (paramIdGenerator) => {
+    errorDeleteGenerator: (idGenerator) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Could not delete Generator with id ${paramIdGenerator}.`
+            message: `Could not delete Generator with id '${idGenerator}'.`
         }
     }   
 }

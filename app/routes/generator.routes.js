@@ -1,16 +1,17 @@
 module.exports = app => {
     const generatorController = require("../controllers/generator.controller.js");
+    const userExtractor = require("../middlewares/userExtractor");
     var router = require("express").Router();
 
-    router.post("/", generatorController.create);
+    router.post("/", userExtractor, generatorController.create);
 
-    router.get("/", generatorController.findAll);
+    router.get("/", userExtractor, generatorController.findAll);
 
-    router.get("/:id", generatorController.findOne);
+    router.get("/:id", userExtractor, generatorController.findOne);
 
-    router.put("/:id", generatorController.update);
+    router.put("/:id", userExtractor, generatorController.update);
 
-    router.delete("/:id", generatorController.delete);
+    router.delete("/:id", userExtractor, generatorController.delete);
 
     app.use('/api/generators', router);
 }

@@ -4,47 +4,47 @@ const TYPE_RESPONSE = "ok";
 
 module.exports = {
 
-    generatorCreated: (generatorId) =>  {
+    generatorCreated: (idGenerator) =>  {
         return {
             status: CREATE_DATA_CODE,
             type: TYPE_RESPONSE,
-            message: `Generator ${generatorId} created successfuly`,
+            message: `Generator '${idGenerator}' created successfully`,
             data: null
         }
     },
 
-    findAllGenerators: (generatorsResult) => {
+    findAllGenerators: (generators) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: "Get all generators successful",
-            data: generatorsResult
+            message: "Get all generators successfully.",
+            data: generators
         }
     },
  
-    findOneGenerator: (generatorResult) => {
+    findOneGenerator: (generator) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: "Get generator by id successful",
-            data: generatorResult
+            message: "Get generator by id successfully.",
+            data: generator
         }
     },
 
-    updateOneGenerator: (generatorUpdatedId) => {
+    updateOneGenerator: (idGenerator) => {
         return {
             status: CREATE_DATA_CODE,
             type: TYPE_RESPONSE,
-            message: `Updated generator ${generatorUpdatedId} successfuly`,
+            message: `Updated generator '${idGenerator}' successfully.`,
             data: null
         }
     },
 
-    deleteGenerator: (generatorDeleteId) => {
+    deleteGenerator: (idGenerator) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: `Generator ${generatorDeleteId} was deleted successfully!`,
+            message: `Generator '${idGenerator}' was deleted successfully!`,
             data: null
         }
     }    
