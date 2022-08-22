@@ -7,7 +7,7 @@ module.exports = {
     notFound: (action) => {
         return {
             status: NOT_FOUND_CODE,
-            message: `Expiration not found in ${action}`
+            message: `Expiration not found in ${action}.`
         }
     },
 
@@ -26,24 +26,24 @@ module.exports = {
         message: "Some error occurred while retrieving Expirations."
     },
 
-    errorFindOneExpiration: (paramIdExpiration) => {
+    errorFindOneExpiration: (idExpiration) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Error retrieving Expiration with id ${paramIdExpiration}`
+            message: `Error retrieving Expiration with id: '${idExpiration}'.`
         }
     },
 
-    errorUpdateExpiration: (paramIdExpiration) => {
+    errorUpdateExpiration: (idExpiration) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Error updating Expiration with ${paramIdExpiration}.`
+            message: `Error updating Expiration with id: '${idExpiration}'.`
         }
     },
 
-    errorDeleteExpiration: (paramIdExpiration) => {
+    errorDeleteExpiration: (idExpiration) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Could not delete Expiration with id ${paramIdExpiration}.`
+            message: `Could not delete Expiration with id: '${idExpiration}'.`
         }
     }   
 }

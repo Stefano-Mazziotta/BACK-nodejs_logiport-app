@@ -8,43 +8,43 @@ module.exports = {
         return {
             status: CREATE_DATA_CODE,
             type: TYPE_RESPONSE,
-            message: `Expiration ${idExpiration} created successfuly`,
+            message: `Expiration '${idExpiration}' created successfully.`,
             data: null
         }
     },
 
-    findAllExpirations: (expirationsResult) => {
+    findAllExpirations: (expirations) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: "Get all expirations successfuly",
-            data: expirationsResult
+            message: "Get all expirations successfully.",
+            data: expirations
         }
     },
  
-    findOneExpiration: (expirationResult) => {
+    findOneExpiration: (expiration) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: "Get expiration by id successful",
-            data: expirationResult
+            message: "Get expiration by id successfully.",
+            data: expiration
         }
     },
 
-    updateOneExpiration: (idExpirationUpdated) => {
+    updateOneExpiration: (idExpiration) => {
         return {
             status: CREATE_DATA_CODE,
             type: TYPE_RESPONSE,
-            message: `Expiration ${idExpirationUpdated} Updated successfuly`,
+            message: `Expiration '${idExpiration}' Updated successfully.`,
             data: null
         }
     },
 
-    deleteExpiration: (idExpirationDeleted) => {
+    deleteExpiration: (idExpiration) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: `Expiration ${idExpirationDeleted} was deleted successfully!`,
+            message: `Expiration '${idExpiration}' was deleted successfully!`,
             data: null
         }
     }    

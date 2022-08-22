@@ -2,149 +2,185 @@ const Expiration = require("../models/expiration.model.js");
 const expirationErrors = require("../messages/errorMessages/errorsExpiration.js");
 const expirationSuccessMessage = require("../messages/successMessages/successExpiration.js");
 
-function sendResponse(res, successResponseObj){
-    res.status(successResponseObj.status);
-    res.send(successResponseObj);
-}
+const idGenerator = require("../utils/idGenerator");
+const sendSuccessResponse = require("../messages/successMessages/sendSuccessResponse");
 
-exports.create = (req, res, next) => {
+exports.create = async (request, response, next) => {
 
-    if (Object.keys(req.body).length === 0){
+    const { body } = request;
+
+    if (Object.keys(body).length === 0){
         next(expirationErrors.bodyEmpty);
         return;
     } 
 
+    const idExpiration = idGenerator();
     const nowTimestamp = Date.now();
+    const {idBoat, title, description, expirationDate } = body;
+
     const expirationConstructor = {
-        IdBoat: req.body.IdBoat,
-        Title: req.body.Title,
-        Description: req.body.Description,
-        ExpirationDate: req.body.ExpirationDate,
+        IdExpiration: idExpiration,
+        IdBoat: idBoat,
+        Title: title,
+        Description: description,
+        ExpirationDate: expirationDate,
         IsDeleted: 0,
         TimeSave: nowTimestamp,
         TimeDeleted: null,
         TimeLastUpdate: null
-    }
+    }    
     const expiration = new Expiration(expirationConstructor);
 
-    const modelResponseCallback = (modelError, modelResponse) => {
-
-        if (modelError) {
-            next(expirationErrors.errorCreateExpiration);
-            return;
-        } 
-
-        let successResponse = expirationSuccessMessage.expirationCreated(modelResponse.id);
-        sendResponse(res, successResponse);                 
-    }
-
-    Expiration.create(expiration, modelResponseCallback);
-};
-
-exports.findAll = (req, res, next) => {
+    let internalError = null;
+    const affectedRows = await Expiration.create(expiration)
+        .catch(error => {
+            internalError = error;
+        });
     
+    if(internalError || affectedRows === 0){
+        next(expirationErrors.errorCreateExpiration);
+        return;
+    }
+
+    const successMessage = expirationSuccessMessage.expirationCreated(idExpiration);
+    sendSuccessResponse(response, successMessage);
+};
+
+exports.findAll = async (request, response, next) => {
+    
+    const { body } = request;
+    
+    if (Object.keys(body).length === 0){
+        next(expirationErrors.bodyEmpty);
+        return;
+    } 
+
+    const { idCompany, idBoat, title } = body;
+
     const expirationParams = {
-        IdCompany: req.body.IdCompany,
-        IdBoat: req.body.IdBoat,
-        Title: req.body.Title,
+        idCompany: idCompany,
+        idBoat: idBoat,
+        title: title
     }
 
-    const modelResponseCallback = (modelError, expirationsResult) => {
+    let internalError = null
+    const expirations = await Expiration.getAll(expirationParams)
+        .catch(error => {
+            internalError = error;
+        });
+    
+    if(internalError){
+        next(expirationErrors.errorFindAllExpirations);
+        return;
+    }
 
-        if(modelError) {
-            next(expirationErrors.errorFindAllExpirations);
-            return;
-        }        
-
-        if(expirationsResult.length) {
-            let successResponse = expirationSuccessMessage.findAllExpirations(expirationsResult);
-            sendResponse(res, successResponse);
-            return;
-        }
-        
+    if(!expirations){
         next(expirationErrors.notFound("findAll"));
+        return;
     }
 
-    Expiration.getAll(expirationParams, modelResponseCallback);
+    const successMessage = expirationSuccessMessage.findAllExpirations(expirations);
+    sendSuccessResponse(response, successMessage);
 };
 
-exports.findOne = (req, res, next) => {
+exports.findOne = async (request, response, next) => {
 
-    const modelResponseCallback = (modelError, expirationResult) => {
-        
-        if(modelError) {   
-            next(expirationErrors.errorFindOneExpiration(req.params.id));
-            return;
-        }
+    const { params } = request;
+    const idExpiration = params.id;
 
-        if(expirationResult.length){            
-            let successResponse = expirationSuccessMessage.findOneExpiration(expirationResult);
-            sendResponse(res, successResponse);
-            return;
-        }
-        
+    let internalError = null;
+    const expiration = await Expiration.findById(idExpiration)
+        .catch(error => {
+            internalError = error;
+        });
+    
+    if(internalError){
+        next(expirationErrors.errorFindOneExpiration(idExpiration));
+        return;
+    }   
+
+    if(!expiration){
         next(expirationErrors.notFound("findOneById"));
+        return;
     }
 
-    Expiration.findById(req.params.id, modelResponseCallback);
+    const successMessage = expirationSuccessMessage.findOneExpiration(expiration);
+    sendSuccessResponse(response, successMessage);
 };
 
-exports.update = (req, res, next) => {
+exports.update = async (request, response, next) => {
 
-    if(Object.keys(req.body).length === 0){
+    const { body, params } = request;
+
+    if(Object.keys(body).length === 0){
         next(expirationErrors.bodyEmpty)
         return;
     }
 
-    let nowTimestamp = Date.now();
+    const nowTimestamp = Date.now();
+    const idExpiration = params.id;
+    const { idBoat, title, description, expirationDate } = body;
+
     const expiration = new Expiration({
-        IdBoat: req.body.IdBoat,
-        Title: req.body.Title,
-        Description: req.body.Description,
-        ExpirationDate: req.body.ExpirationDate,
+        IdExpiration: idExpiration,
+        IdBoat: idBoat,
+        Title: title,
+        Description: description,
+        ExpirationDate: expirationDate,
         IsDeleted: 0,
         TimeSave: null,
         TimeDeleted: null,
         TimeLastUpdate: nowTimestamp
     });
 
-    const modelResponseCallback = (modelError, expirationUpdated) => {
-
-        if(modelError){
-
-            if(modelError.kind === "not_found") {
-                next(expirationErrors.notFound("updateById"));
-                return;
-            }
-            
-            next(expirationErrors.errorUpdateExpiration(req.params.id));
-            return;
-        } 
-
-        let successResponse = expirationSuccessMessage.updateOneExpiration(expirationUpdated.id);
-        sendResponse(res, successResponse);
+    let internalError = null;
+    const affectedRows = await Expiration.updateById(expiration)
+        .catch(error => {
+            internalError = error;
+        });
+    
+    if(internalError){
+        next(expirationErrors.errorUpdateExpiration(idExpiration));
+        return;
     }
 
-    Expiration.updateById(req.params.id, expiration, modelResponseCallback);
+    if(affectedRows === 0){
+        next(expirationErrors.notFound("updateById"));
+        return;
+    }
+
+    const successMessage = expirationSuccessMessage.updateOneExpiration(idExpiration);
+    sendSuccessResponse(response, successMessage);
 };
 
-exports.delete = (req, res, next) => {
+exports.delete = async (request, response, next) => {
 
-    const modelResponseCallback = (modelError, modelResponse) => {
+    const { params } = request;
+    
+    const idExpiration = params.id;
+    const nowTimestamp = Date.now();
 
-        if(modelError){
-            if(modelError.kind === "not_found"){
-                next(expirationErrors.notFound("deleteExpiration"));
-                return;
-            }
+    const deleteParams = {
+        idExpiration: idExpiration,
+        timeDeleted: nowTimestamp
+    }
+    
+    let internalError = null;
+    const affectedRows = await Expiration.remove(deleteParams)
+        .catch(error => {
+            internalError = error;
+        });
 
-            next(expirationErrors.errorDeleteExpiration(req.params.id));
-            return;
-        } 
-
-        let successResponse = expirationSuccessMessage.deleteExpiration(req.params.id);
-        sendResponse(res, successResponse);
+    if(internalError){
+        next(expirationErrors.errorDeleteExpiration(idExpiration));
+        return;
     }
 
-    Expiration.remove(req.params.id, modelResponseCallback);
+    if(affectedRows === 0){
+        next(expirationErrors.notFound("deleteExpiration"));
+        return;
+    }
+
+    const successMessage = expirationSuccessMessage.deleteExpiration(idExpiration);
+    sendSuccessResponse(response, successMessage);
 };

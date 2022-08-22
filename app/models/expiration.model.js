@@ -1,12 +1,10 @@
-const sql = require("./db.js");
-
-function cleanLineBreak(str){
-    return str.replace(/(\r\n|\n|\r)/gm, "");
-}
+const pool = require("./db.js");
+const stringUtils = require("../utils/stringUtils");
 
 class Expiration {
     
     constructor(expiration) {
+        this.IdExpiration = expiration.IdExpiration;
         this.IdBoat = expiration.IdBoat;
         this.Title = expiration.Title;
         this.Description = expiration.Description;
@@ -17,57 +15,55 @@ class Expiration {
         this.TimeDeleted = expiration.TimeDeleted;
     }
 
-    static async create(newExpiration, modelResponseCallback) {
-        sql.query("INSERT INTO expiration SET ?", newExpiration, (queryError, queryResponse) => {
+    static async create(newExpiration) {
 
-            if (queryError) {
-                modelResponseCallback(queryError, null);
-                return;
-            }
-            let expirationCreated = { id: queryResponse.insertId, ...newExpiration };
-            modelResponseCallback(null, expirationCreated);
-        });
+        const queryResult = await pool.query("INSERT INTO expiration SET ?", newExpiration);
+        const affectedRows = queryResult[0].affectedRows;
+
+        return affectedRows;
     }
 
-    static getAll(expirationParams, modelResponseCallback) {
+    static async getAll(getAllParams) {
+
+        const { idCompany, idBoat, title } = getAllParams;
+
         let query = `SELECT expiration.*, boat.BoatName FROM expiration
         INNER JOIN boat ON expiration.IdBoat = boat.IdBoat 
-        WHERE expiration.IsDeleted = 0 AND boat.IdCompany ='${expirationParams.IdCompany}'`;
+        WHERE expiration.IsDeleted = 0 AND boat.IdCompany ='${idCompany}'`;
 
-        query = cleanLineBreak(query);
+        query = stringUtils.cleanLineBreak(query);
 
-        if (expirationParams.IdBoat) {
-            query += ` AND IdBoat = '${expirationParams.IdBoat}'`;
+        if (idBoat) {
+            query += ` AND expiration.IdBoat = '${idBoat}'`;
         }
 
-        if (expirationParams.Title) {
-            query += ` AND Title LIKE '%${expirationParams.Title}%'`;
+        if (title) {
+            query += ` AND expiration.Title LIKE '%${title}%'`;
         }
 
-        sql.query(query, (queryError, queryResponse) => {
+        const queryResult = await pool.query(query);
+        
+        let expirations = null;
+        if(queryResult[0].length){
+            expirations = queryResult[0];
+        }
 
-            if (queryError) {
-                modelResponseCallback(queryError, null);
-                return;
-            }
-
-            modelResponseCallback(null, queryResponse);
-        });
+        return expirations;
     }
 
-    static findById(idExpiration, modelResponseCallback) {
-        sql.query(`SELECT * FROM expiration WHERE IsDeleted = 0 AND IdExpiration = ${idExpiration}`, (queryError, queryResponse) => {
+    static async findById(idExpiration) {
+        const query = `SELECT * FROM expiration WHERE IsDeleted = 0 AND IdExpiration = '${idExpiration}'`;
+        const queryResult = await pool.query(query);
 
-            if(queryError){
-                modelResponseCallback(queryError, null);
-                return;
-            }
-        
-            modelResponseCallback(null, queryResponse);
-        });
+        let expiration = null;
+        if(queryResult[0].length){
+            expiration = queryResult[0][0];
+        }
+
+        return expiration;
     }
     
-    static updateById(idExpiration , expiration, modelResponseCallback) {      
+    static async updateById(expiration) {      
 
         let query = "UPDATE expiration SET ";
         query += `IdBoat = '${expiration.IdBoat}',`;
@@ -75,44 +71,23 @@ class Expiration {
         query += `Description = '${expiration.Description}',`;
         query += `ExpirationDate = '${expiration.ExpirationDate}',`;  
         query += `TimeLastUpdate = ${expiration.TimeLastUpdate} `;
-        query += `WHERE IdExpiration = ${idExpiration} AND IsDeleted = 0;`;
+        query += `WHERE IdExpiration = '${expiration.IdExpiration}' AND IsDeleted = 0;`;
 
-        sql.query(query, (queryError, queryResponse) => {
+        const queryResult = await pool.query(query);
+        const affectedRows = queryResult[0].affectedRows;
 
-            if(queryError){
-                modelResponseCallback(queryError, null);
-                return;
-            }
-
-            if(queryResponse.affectedRows == 0){
-                modelResponseCallback({ kind: "not_found" }, null);
-                return;
-            }
-
-            modelResponseCallback(null, { id: idExpiration, ...expiration });
-        });
+        return affectedRows;
     }
     
-    static remove(idExpiration, modelResponseCallback) {
+    static async remove(deleteParams) {
 
-        let timeDeleted = Date.now();
-        sql.query(
-            `UPDATE expiration SET IsDeleted = 1, TimeDeleted = ${timeDeleted} WHERE IdExpiration = ${idExpiration} AND IsDeleted = 0`, 
-            (queryError, queryResponse) => {
+        const { idExpiration, timeDeleted } = deleteParams;
+        const query = `UPDATE expiration SET IsDeleted = 1, TimeDeleted = ${timeDeleted} WHERE IdExpiration = '${idExpiration}' AND IsDeleted = 0`;
 
-                if (queryError) {
-                    modelResponseCallback(queryError, null);
-                    return;
-                }
+        const queryResult = await pool.query(query);
+        const affectedRows = queryResult[0].affectedRows;
 
-                if (queryResponse.affectedRows == 0) {
-                    modelResponseCallback({ kind: "not_found" }, null);
-                    return;
-                }
-
-                modelResponseCallback(null, queryResponse);
-            }
-        );
+        return affectedRows;        
     }
 }
 
