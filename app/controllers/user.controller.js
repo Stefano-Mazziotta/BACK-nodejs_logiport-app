@@ -1,14 +1,13 @@
 const User = require("../models/user.model.js");
+
 const userErrors = require("../messages/errorMessages/errorsUser.js");
 const userSuccessMessage = require("../messages/successMessages/successUser.js");
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { randomUUID } = require("crypto");
+const idGenerator = require("../utils/idGenerator");
 
-function sendResponse(response, successResponseObj){
-    response.status(successResponseObj.status);
-    response.send(successResponseObj);
-}
+const sendSuccessResponse = require("../messages/successMessages/sendSuccessResponse");
 
 exports.register = async (request, response, next) => {
 
@@ -20,8 +19,7 @@ exports.register = async (request, response, next) => {
 
     const { username, password } = body;
     
-    let randomId = randomUUID(); 
-    randomId = randomId.split("-")[0];
+    const randomId = idGenerator();
 
     const saltRounds = 10;
     let passwordEncrypted = await bcrypt.hash(password, saltRounds);
@@ -47,8 +45,8 @@ exports.register = async (request, response, next) => {
         return;
     } 
 
-    let successResponse = userSuccessMessage.userRegistered(user.IdUser);
-    sendResponse(response, successResponse);
+    const successResponse = userSuccessMessage.userRegistered(user.IdUser);
+    sendSuccessResponse(response, successResponse);
 };
 
 exports.login = async (request, response, next) => { 
@@ -91,7 +89,7 @@ exports.login = async (request, response, next) => {
     }
 
     const successResponse = userSuccessMessage.userLoged(userResponse);
-    sendResponse(response, successResponse);        
+    sendSuccessResponse(response, successResponse);        
 }
 
 exports.findAll = async (request, response, next) => {
@@ -114,7 +112,7 @@ exports.findAll = async (request, response, next) => {
     }
 
     const successResponse = userSuccessMessage.findAllUsers(users);
-    sendResponse(response, successResponse);   
+    sendSuccessResponse(response, successResponse);   
 }
 
 exports.findOne = async (request, response, next) => {
@@ -139,8 +137,7 @@ exports.findOne = async (request, response, next) => {
 
     delete user.PasswordHash;
     const successResponse = userSuccessMessage.findOneUser(user);
-    sendResponse(response, successResponse);   
-
+    sendSuccessResponse(response, successResponse);   
 }
 
 exports.update = async (request, response, next) => {
@@ -167,5 +164,5 @@ exports.delete = async (request, response, next) => {
     }
 
     const successResponse = userSuccessMessage.deleteUser(idUser);
-    sendResponse(response, successResponse);
+    sendSuccessResponse(response, successResponse);
 }

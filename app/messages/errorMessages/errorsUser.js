@@ -35,14 +35,14 @@ module.exports = {
     errorFindOneUser: (username) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Error retrieving user with username ${username}.`
+            message: `Error retrieving user with username '${username}'.`
         }
     },
 
-    errorDeleteUser: (paramIdUser) => {
+    errorDeleteUser: (idUser) => {
         return {
             status: INTERNAL_ERROR_CODE,
-            message: `Could not delete user with id ${paramIdUser}.`
+            message: `Could not delete user with id '${idUser}'.`
         }
     }  
 }

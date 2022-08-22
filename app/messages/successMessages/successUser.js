@@ -17,34 +17,34 @@ module.exports = {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: `User '${user.idUser}' loged successfully`,
+            message: `User '${user.idUser}' loged successfully.`,
             data: user
         }
     },
 
-    findAllUsers: (usersResult) => {
+    findAllUsers: (users) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: "Get all users successfully",
-            data: usersResult
+            message: "Get all users successfully.",
+            data: users
         }
     },
 
-    findOneUser: (userResult) => {
+    findOneUser: (user) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: "Get user by username successfully",
-            data: userResult
+            message: "Get user by username successfully.",
+            data: user
         }
     },
 
-    deleteUser: (userIdDeleted) => {
+    deleteUser: (idUser) => {
         return {
             status: SUCCESS_RESPONSE_CODE,
             type: TYPE_RESPONSE,
-            message: `User ${userIdDeleted} was deleted successfully!`,
+            message: `User '${idUser}' was deleted successfully!`,
             data: null
         }
     } 
