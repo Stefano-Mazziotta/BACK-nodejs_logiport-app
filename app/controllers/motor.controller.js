@@ -1,7 +1,7 @@
 const Motor = require("../models/motor.model");
 
-const motorErrors = require("../messages/errorMessages/errorsMotor");
-const motorSuccessMessage = require("../messages/successMessages/successMotor");
+const motorErrors = require("../messages/errorMessages/motor.error");
+const motorSuccessMessage = require("../messages/successMessages/motor.success");
 
 const idGenerator = require("../utils/idGenerator");
 const sendSuccessResponse = require("../messages/successMessages/sendSuccessResponse");
