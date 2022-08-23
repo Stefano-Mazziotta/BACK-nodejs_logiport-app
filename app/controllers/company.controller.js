@@ -1,7 +1,7 @@
 const Company = require("../models/company.model");
 
-const companyErrors = require("../messages/errorMessages/errorsCompany");
-const companySuccessMessage = require("../messages/successMessages/successCompany");
+const companyErrors = require("../messages/errorMessages/company.error");
+const companySuccessMessage = require("../messages/successMessages/company.success");
 
 const idGenerator = require("../utils/idGenerator")
 const sendSuccessResponse = require("../messages/successMessages/sendSuccessResponse");
