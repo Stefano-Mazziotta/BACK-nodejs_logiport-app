@@ -27,10 +27,11 @@ exports.create = async (request, response, next) => {
         Model: body.Model,
         Type: body.Type, 
         Power: body.Power,
-        IsDeleted: 0,
+        Location: body.Location,
         TimeSave: nowTimestamp,
-        TimeDeleted: null,
-        TimeLastUpdate: null
+        TimeLastUpdate: null,
+        IsDeleted: 0,
+        TimeDeleted: null
     }
     const motor = new Motor(motorConstructor);
 
@@ -126,10 +127,11 @@ exports.update = async (request, response, next) => {
         Model: body.Model,
         Type: body.Type, 
         Power: body.Power,    
-        IsDeleted: 0,
+        Location: body.Location,
         TimeSave: null,
-        TimeDeleted: null,
-        TimeLastUpdate: nowTimestamp
+        TimeLastUpdate: nowTimestamp,
+        IsDeleted: 0,
+        TimeDeleted: null
     });
 
     let internalError = null;

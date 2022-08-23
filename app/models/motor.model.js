@@ -12,9 +12,10 @@ class Motor {
         this.Model = motor.Model;
         this.Type = motor.Type;
         this.Power = motor.Power;
-        this.IsDeleted = motor.IsDeleted;
+        this.Location = motor.Location;
         this.TimeSave = motor.TimeSave;
         this.TimeLastUpdate = motor.TimeLastUpdate;
+        this.IsDeleted = motor.IsDeleted;
         this.TimeDeleted = motor.TimeDeleted;
     }
 
@@ -77,6 +78,7 @@ class Motor {
         query += `Model = '${motor.Model}',`;  
         query += `Type = '${motor.Type}',`;
         query += `Power = '${motor.Power}',`;
+        query += `Location = '${motor.Location}',`;
         query += `TimeLastUpdate = ${motor.TimeLastUpdate} `;
         query += `WHERE IdMotor = '${motor.IdMotor}' AND IsDeleted = 0;`;
 
