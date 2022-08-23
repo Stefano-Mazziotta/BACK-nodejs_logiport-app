@@ -1,7 +1,7 @@
 const Generator = require("../models/generator.model");
 
-const generatorErrors = require("../messages/errorMessages/errorsGenerator");
-const generatorSuccessMessage = require("../messages/successMessages/successGenerator");
+const generatorErrors = require("../messages/errorMessages/generator.error");
+const generatorSuccessMessage = require("../messages/successMessages/generator.success");
 
 const getRandomId = require("../utils/idGenerator");
 const sendSuccessResponse = require("../messages/successMessages/sendSuccessResponse");
