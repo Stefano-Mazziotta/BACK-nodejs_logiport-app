@@ -1,6 +1,6 @@
-const Expiration = require("../models/expiration.model.js");
-const expirationErrors = require("../messages/errorMessages/errorsExpiration.js");
-const expirationSuccessMessage = require("../messages/successMessages/successExpiration.js");
+const Expiration = require("../models/expiration.model");
+const expirationErrors = require("../messages/errorMessages/expiration.error");
+const expirationSuccessMessage = require("../messages/successMessages/expiration.success");
 
 const idGenerator = require("../utils/idGenerator");
 const sendSuccessResponse = require("../messages/successMessages/sendSuccessResponse");
