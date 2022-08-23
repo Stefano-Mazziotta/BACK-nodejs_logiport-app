@@ -1,7 +1,7 @@
-const User = require("../models/user.model.js");
+const User = require("../models/user.model");
 
-const userErrors = require("../messages/errorMessages/errorsUser.js");
-const userSuccessMessage = require("../messages/successMessages/successUser.js");
+const userErrors = require("../messages/errorMessages/user.error");
+const userSuccessMessage = require("../messages/successMessages/user.success");
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
