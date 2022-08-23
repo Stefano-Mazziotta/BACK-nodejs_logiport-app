@@ -1,7 +1,7 @@
-const Boat = require("../models/boat.model.js");
+const Boat = require("../models/boat.model");
 
-const boatErrors = require("../messages/errorMessages/errorsBoat.js");
-const boatSuccessMessage = require("../messages/successMessages/successBoat.js");
+const boatErrors = require("../messages/errorMessages/boat.error");
+const boatSuccessMessage = require("../messages/successMessages/boat.success");
 
 const idGenerator = require("../utils/idGenerator")
 const sendSuccessResponse = require("../messages/successMessages/sendSuccessResponse");
