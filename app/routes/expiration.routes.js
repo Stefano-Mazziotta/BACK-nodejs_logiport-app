@@ -1,18 +1,19 @@
-module.exports = app => {
-    const expirationController = require("../controllers/expiration.controller");
-    const userExtractor = require("../middlewares/userExtractor");
 
-    var router = require("express").Router();
+const router = require("express").Router();
 
-    router.post("/", userExtractor, expirationController.create);
+const expirationController = require("../controllers/expiration.controller");
+const userExtractor = require("../middlewares/userExtractor");
 
-    router.get("/", userExtractor, expirationController.findAll);
 
-    router.get("/:id", userExtractor, expirationController.findOne);
+router.post("/", userExtractor, expirationController.create);
 
-    router.put("/:id", userExtractor, expirationController.update);
+router.get("/", userExtractor, expirationController.findAll);
 
-    router.delete("/:id", userExtractor, expirationController.delete);
+router.get("/:id", userExtractor, expirationController.findOne);
 
-    app.use('/api/expirations', router);
-}
+router.put("/:id", userExtractor, expirationController.update);
+
+router.delete("/:id", userExtractor, expirationController.delete);
+
+
+module.exports = router;

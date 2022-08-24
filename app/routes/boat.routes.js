@@ -1,18 +1,17 @@
-module.exports = app => {
+const router = require("express").Router();
 
-    const boatController = require("../controllers/boat.controller.js");
-    const userExtractor = require("../middlewares/userExtractor");
-    const router = require("express").Router();
+const userExtractor = require("../middlewares/userExtractor");
+const boatController = require("../controllers/boat.controller.js");
 
-    router.post("/", userExtractor, boatController.create);
+router.post("/", userExtractor, boatController.create);
 
-    router.get("/", userExtractor, boatController.findAll);
+router.get("/", userExtractor, boatController.findAll);
 
-    router.get("/:id", userExtractor, boatController.findOne);
+router.get("/:id", userExtractor, boatController.findOne);
 
-    router.put("/:id", userExtractor, boatController.update);
+router.put("/:id", userExtractor, boatController.update);
 
-    router.delete("/:id", userExtractor, boatController.delete);
+router.delete("/:id", userExtractor, boatController.delete);
 
-    app.use('/api/boats', router);
-}
+
+module.exports = router;

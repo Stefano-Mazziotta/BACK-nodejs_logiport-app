@@ -1,20 +1,20 @@
+const router = require("express").Router();
+
 const userExtractor = require("../middlewares/userExtractor");
+const userController = require("../controllers/user.controller.js");
 
-module.exports = app => {
-    const userController = require("../controllers/user.controller.js");
-    var router = require("express").Router();
-    
-    router.post("/register", userController.register);
 
-    router.post("/login", userController.login);
+router.post("/register", userController.register);
 
-    router.get("/", userExtractor, userController.findAll);
+router.post("/login", userController.login);
 
-    router.get("/:username", userExtractor, userController.findOne);
+router.get("/", userExtractor, userController.findAll);
 
-    // router.put("/id", userExtractor, userController.update);
+router.get("/:username", userExtractor, userController.findOne);
 
-    router.delete("/:id", userExtractor, userController.delete);
+// router.put("/id", userExtractor, userController.update);
 
-    app.use('/api/user', router);
-}
+router.delete("/:id", userExtractor, userController.delete);
+
+
+module.exports = router;

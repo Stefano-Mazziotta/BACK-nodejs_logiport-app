@@ -1,17 +1,18 @@
-module.exports = app => {
-    const motorController = require("../controllers/motor.controller.js");
-    const userExtractor = require("../middlewares/userExtractor");
-    var router = require("express").Router();
+const router = require("express").Router();
 
-    router.post("/", userExtractor, motorController.create);
+const motorController = require("../controllers/motor.controller");
+const userExtractor = require("../middlewares/userExtractor");
 
-    router.get("/", userExtractor, motorController.findAll);
 
-    router.get("/:id", userExtractor, motorController.findOne);
+router.post("/", userExtractor, motorController.create);
 
-    router.put("/:id", userExtractor, motorController.update);
+router.get("/", userExtractor, motorController.findAll);
 
-    router.delete("/:id", userExtractor, motorController.delete);
+router.get("/:id", userExtractor, motorController.findOne);
 
-    app.use('/api/motors', router);
-}
+router.put("/:id", userExtractor, motorController.update);
+
+router.delete("/:id", userExtractor, motorController.delete);
+
+
+module.exports = router;
