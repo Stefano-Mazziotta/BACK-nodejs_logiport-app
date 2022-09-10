@@ -46,8 +46,8 @@ exports.create = async (request, response, next) => {
 
 exports.findAll = async (request, response, next) => {
 
-    const { body } = request;
-    const { razonSocial } = body;
+    const { query } = request;
+    const { razonSocial } = query;
 
     let internalError = null;
     const companies = await Company.getAll(razonSocial)
