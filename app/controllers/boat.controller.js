@@ -62,8 +62,8 @@ exports.create = async (request, response, next) => {
 
 exports.findAll = async (request, response, next) => {
 
-    const { body } = request;
-    const { idCompany, boatName } = body;
+    const { query } = request;
+    const { idCompany, boatName } = query;
 
     const boatParams = {
         IdCompany: idCompany,
