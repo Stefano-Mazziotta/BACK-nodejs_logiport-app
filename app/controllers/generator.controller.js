@@ -51,14 +51,14 @@ exports.create =  async (request, response, next) => {
 
 exports.findAll = async (request, response, next) => {
 
-    const { body } = request;
+    const { query } = request;
 
-    if (Object.keys(body).length === 0){
+    if (Object.keys(query).length === 0){
         next(generatorErrors.bodyEmpty);
         return;
     } 
 
-    const { idCompany, idBoat, numberGenerator} = body;
+    const { idCompany, idBoat, numberGenerator} = query;
     
     const getAllParams = {
         idCompany: idCompany,
