@@ -48,14 +48,14 @@ exports.create = async (request, response, next) => {
 
 exports.findAll = async (request, response, next) => {
     
-    const { body } = request;
+    const { query } = request;
     
-    if (Object.keys(body).length === 0){
+    if (Object.keys(query).length === 0){
         next(expirationErrors.bodyEmpty);
         return;
     } 
 
-    const { idCompany, idBoat, title } = body;
+    const { idCompany, idBoat, title } = query;
 
     const expirationParams = {
         idCompany: idCompany,
