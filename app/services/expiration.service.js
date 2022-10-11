@@ -1,7 +1,10 @@
 class ExpirationService {
 
-    static getDaysToExpiration (actualDate, expirationDate){  
-        const diff = (expirationDate * 1000) - actualDate;
+    static getDaysToExpiration (expirationTimestamp){
+
+        const actualTimestamp = Date.now();
+        const diff = expirationTimestamp - actualTimestamp;
+
         let daysToExpiration = Math.ceil(diff/(1000*60*60*24));
 
         if(daysToExpiration < 0){
@@ -13,10 +16,8 @@ class ExpirationService {
 
     static calculateStatus(expiration){
         
-        const actualTimestamp = Date.now();
-        const expirationTimestamp = expiration.ExpirationDate;
-        
-        const daysToExpiration = this.getDaysToExpiration(actualTimestamp, expirationTimestamp);
+        const expirationTimestamp = expiration.ExpirationDate;        
+        const daysToExpiration = this.getDaysToExpiration(expirationTimestamp);
         
         let status = "ok"  
 
