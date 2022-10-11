@@ -1,5 +1,6 @@
 const pool = require("./db.js");
 const stringUtils = require("../utils/stringUtils");
+const ExpirationService = require("../services/expiration.service");
 
 class Expiration {
     
@@ -46,6 +47,10 @@ class Expiration {
         let expirations = null;
         if(queryResult[0].length){
             expirations = queryResult[0];
+
+            expirations.forEach(expiration => {
+                expiration.Status = ExpirationService.calculateStatus(expiration);
+            });
         }
 
         return expirations;
@@ -58,6 +63,8 @@ class Expiration {
         let expiration = null;
         if(queryResult[0].length){
             expiration = queryResult[0][0];
+
+            expiration.Status = ExpirationService.calculateStatus(expiration);
         }
 
         return expiration;
