@@ -49,6 +49,8 @@ class Expiration {
             expirations = queryResult[0];
 
             expirations.forEach(expiration => {
+                const { ExpirationDate } = expiration;
+                expiration.DaysToExpiration = ExpirationService.getDaysToExpiration(ExpirationDate)
                 expiration.Status = ExpirationService.calculateStatus(expiration);
             });
         }
@@ -64,6 +66,9 @@ class Expiration {
         if(queryResult[0].length){
             expiration = queryResult[0][0];
 
+            const { ExpirationDate } = expiration;
+            
+            expiration.DaysToExpiration = ExpirationService.getDaysToExpiration(ExpirationDate)
             expiration.Status = ExpirationService.calculateStatus(expiration);
         }
 
