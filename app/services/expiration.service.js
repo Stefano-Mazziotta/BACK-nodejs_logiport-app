@@ -15,17 +15,16 @@ class ExpirationService {
     }
 
     static calculateStatus(expiration){
-        
-        const expirationTimestamp = expiration.ExpirationDate;        
-        const daysToExpiration = this.getDaysToExpiration(expirationTimestamp);
+                
+        const { DaysToExpiration } = expiration;
         
         let status = "ok"  
 
-        if(daysToExpiration == -1){
+        if(DaysToExpiration == -1){
             status = "expirated";
         }        
         
-        if(daysToExpiration <= 21 && daysToExpiration >= 0){ 
+        if(DaysToExpiration <= 21 && DaysToExpiration >= 0){ 
             status = "warning"
         }      
         
