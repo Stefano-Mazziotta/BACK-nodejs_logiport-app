@@ -28,7 +28,7 @@ jobs:
         uses: easingthemes/ssh-deploy@v2.1.5
         with:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY}}
-          SOURCE: "dist/logiport-app/"
+          SOURCE: "."
           REMOTE_HOST: "ec2-54-232-160-105.sa-east-1.compute.amazonaws.com"
           REMOTE_USER: "ubuntu"
           TARGET: "/var/www/app.logiport.site/back/"
