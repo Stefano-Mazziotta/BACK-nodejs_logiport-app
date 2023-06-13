@@ -9,26 +9,30 @@ exports.create = async (request, response, next) => {
 
     const { body } = request;
 
-    if (Object.keys(body).length === 0){
+    if (Object.keys(body).length === 0) {
         next(expirationErrors.bodyEmpty);
         return;
-    } 
+    }
 
     const idExpiration = idGenerator();
     const nowTimestamp = Date.now();
-    const {idBoat, title, description, expirationDate } = body;
+    const { idBoat, title, initDate, inspectorCheck, expirationDate, description } = body;
 
     const expirationConstructor = {
         IdExpiration: idExpiration,
         IdBoat: idBoat,
         Title: title,
+        InitDate: initDate,
         Description: description,
+        InspectorCheck: inspectorCheck,
         ExpirationDate: expirationDate,
+        orderPrio: null,
         IsDeleted: 0,
         TimeSave: nowTimestamp,
         TimeDeleted: null,
         TimeLastUpdate: null
-    }    
+    }
+
     const expiration = new Expiration(expirationConstructor);
 
     let internalError = null;
@@ -36,8 +40,8 @@ exports.create = async (request, response, next) => {
         .catch(error => {
             internalError = error;
         });
-    
-    if(internalError || affectedRows === 0){
+
+    if (internalError || affectedRows === 0) {
         next(expirationErrors.errorCreateExpiration);
         return;
     }
@@ -47,13 +51,13 @@ exports.create = async (request, response, next) => {
 };
 
 exports.findAll = async (request, response, next) => {
-    
+
     const { query } = request;
-    
-    if (Object.keys(query).length === 0){
+
+    if (Object.keys(query).length === 0) {
         next(expirationErrors.bodyEmpty);
         return;
-    } 
+    }
 
     const { idCompany, idBoat, title } = query;
 
@@ -68,13 +72,13 @@ exports.findAll = async (request, response, next) => {
         .catch(error => {
             internalError = error;
         });
-    
-    if(internalError){
+
+    if (internalError) {
         next(expirationErrors.errorFindAllExpirations);
         return;
     }
 
-    if(!expirations){
+    if (!expirations) {
         next(expirationErrors.notFound("findAll"));
         return;
     }
@@ -93,13 +97,13 @@ exports.findOne = async (request, response, next) => {
         .catch(error => {
             internalError = error;
         });
-    
-    if(internalError){
+
+    if (internalError) {
         next(expirationErrors.errorFindOneExpiration(idExpiration));
         return;
-    }   
+    }
 
-    if(!expiration){
+    if (!expiration) {
         next(expirationErrors.notFound("findOneById"));
         return;
     }
@@ -112,14 +116,14 @@ exports.update = async (request, response, next) => {
 
     const { body, params } = request;
 
-    if(Object.keys(body).length === 0){
+    if (Object.keys(body).length === 0) {
         next(expirationErrors.bodyEmpty)
         return;
     }
 
     const nowTimestamp = Date.now();
     const idExpiration = params.id;
-    const { idBoat, title, description, expirationDate } = body;
+    const { idBoat, title, description, expirationDate, inspectorCheck, initDate } = body;
 
     const expiration = new Expiration({
         IdExpiration: idExpiration,
@@ -127,6 +131,8 @@ exports.update = async (request, response, next) => {
         Title: title,
         Description: description,
         ExpirationDate: expirationDate,
+        InitDate: initDate,
+        InspectorCheck: inspectorCheck,
         IsDeleted: 0,
         TimeSave: null,
         TimeDeleted: null,
@@ -138,13 +144,13 @@ exports.update = async (request, response, next) => {
         .catch(error => {
             internalError = error;
         });
-    
-    if(internalError){
+
+    if (internalError) {
         next(expirationErrors.errorUpdateExpiration(idExpiration));
         return;
     }
 
-    if(affectedRows === 0){
+    if (affectedRows === 0) {
         next(expirationErrors.notFound("updateById"));
         return;
     }
@@ -156,7 +162,7 @@ exports.update = async (request, response, next) => {
 exports.delete = async (request, response, next) => {
 
     const { params } = request;
-    
+
     const idExpiration = params.id;
     const nowTimestamp = Date.now();
 
@@ -164,19 +170,19 @@ exports.delete = async (request, response, next) => {
         idExpiration: idExpiration,
         timeDeleted: nowTimestamp
     }
-    
+
     let internalError = null;
     const affectedRows = await Expiration.remove(deleteParams)
         .catch(error => {
             internalError = error;
         });
 
-    if(internalError){
+    if (internalError) {
         next(expirationErrors.errorDeleteExpiration(idExpiration));
         return;
     }
 
-    if(affectedRows === 0){
+    if (affectedRows === 0) {
         next(expirationErrors.notFound("deleteExpiration"));
         return;
     }
