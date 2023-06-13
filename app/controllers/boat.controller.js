@@ -1,4 +1,5 @@
 const Boat = require("../models/boat.model");
+const Expiration = require("../models/expiration.model");
 
 const boatErrors = require("../messages/errorMessages/boat.error");
 const boatSuccessMessage = require("../messages/successMessages/boat.success");
@@ -6,11 +7,13 @@ const boatSuccessMessage = require("../messages/successMessages/boat.success");
 const idGenerator = require("../utils/idGenerator")
 const sendSuccessResponse = require("../messages/successMessages/sendSuccessResponse");
 
-exports.create = async (request, response, next) => {
 
+const expirationTitles = require("../utils/expirationsList")
+
+exports.create = async (request, response, next) => {
     const { body } = request;
 
-    if (Object.keys(body).length === 0){
+    if (Object.keys(body).length === 0) {
         next(boatErrors.bodyEmpty);
         return;
     }
@@ -23,7 +26,7 @@ exports.create = async (request, response, next) => {
         IdCompany: body.idCompany,
         BoatName: body.boatName,
         Enrollment: body.enrollment,
-        DistinguishingMark: body.distinguishingMark, 
+        DistinguishingMark: body.distinguishingMark,
         HullMaterial: body.hullMaterial,
         BoatType: body.boatType,
         Service: body.service,
@@ -42,22 +45,60 @@ exports.create = async (request, response, next) => {
         TimeSave: nowTimestamp,
         TimeDeleted: null,
         TimeLastUpdate: null
-    }
+    };
     const boat = new Boat(boatConstructor);
 
     let internalError = null;
-    const affectedRows = await Boat.create(boat)
-        .catch( error => {
-            internalError = error;
-        })
-    
-    if(internalError || affectedRows === 0){
+    const affectedRows = await Boat.create(boat).catch(error => {
+        internalError = error;
+    });
+
+    if (internalError || affectedRows === 0) {
         next(boatErrors.errorCreateBoat);
         return;
     }
 
     const successMessage = boatSuccessMessage.boatCreated(idBoat);
-    sendSuccessResponse(response, successMessage);
+
+    try {
+        for (let i = 0; i < expirationTitles.length; i++) {
+            const title = expirationTitles[i];
+            const idExpiration = idGenerator();
+            const nowTimestamp = Date.now();
+            let orderPrio = i + 1 
+            const expirationConstructor = {
+                IdExpiration: idExpiration,
+                IdBoat: idBoat,
+                Title: title,
+                InitDate: 0,
+                Description: "",
+                InspectorCheck: 0,
+                ExpirationDate: 0,
+                IsDeleted: 0,
+                TimeSave: nowTimestamp,
+                TimeDeleted: null,
+                TimeLastUpdate: null,
+                orderPrio: orderPrio
+            };
+
+            const expiration = new Expiration(expirationConstructor);
+
+            let internalError = null;
+            const affectedRows = await Expiration.create(expiration).catch(error => {
+                internalError = error;
+            });
+
+            if (internalError || affectedRows === 0) {
+                next(expirationErrors.errorCreateExpiration);
+                return;
+            }
+        }
+
+        sendSuccessResponse(response, successMessage);
+    } catch (error) {
+        next(expirationErrors.errorCreateExpiration);
+    }
+
 };
 
 exports.findAll = async (request, response, next) => {
@@ -72,16 +113,16 @@ exports.findAll = async (request, response, next) => {
 
     let internalError = null;
     const boats = await Boat.getAll(boatParams)
-        .catch( error => {
+        .catch(error => {
             internalError = error;
         });
-    
-    if(internalError){
+
+    if (internalError) {
         next(boatErrors.errorFindAllBoats);
         return;
     }
 
-    if(!boats){
+    if (!boats) {
         next(boatErrors.notFound("findAllBoats"));
         return;
     }
@@ -97,16 +138,16 @@ exports.findOne = async (request, response, next) => {
 
     let internalError = null;
     const boat = await Boat.findById(idBoat)
-        .catch( error => {
+        .catch(error => {
             internalError = error;
         });
 
-    if(internalError){
+    if (internalError) {
         next(boatErrors.errorFindOneBoat(idBoat));
         return;
     }
 
-    if(!boat){
+    if (!boat) {
         next(boatErrors.notFound("findOneById"));
         return;
     }
@@ -117,9 +158,9 @@ exports.findOne = async (request, response, next) => {
 
 exports.update = async (request, response, next) => {
 
-    const { body, params } = request;   
+    const { body, params } = request;
 
-    if(Object.keys(body).length === 0){
+    if (Object.keys(body).length === 0) {
         next(boatErrors.bodyEmpty)
         return;
     }
@@ -131,7 +172,7 @@ exports.update = async (request, response, next) => {
         IdCompany: body.idCompany,
         BoatName: body.boatName,
         Enrollment: body.enrollment,
-        DistinguishingMark: body.distinguishingMark, 
+        DistinguishingMark: body.distinguishingMark,
         HullMaterial: body.hullMaterial,
         BoatType: body.boatType,
         Service: body.service,
@@ -154,16 +195,16 @@ exports.update = async (request, response, next) => {
 
     let internalError = null;
     const affectedRows = await Boat.updateById(boat)
-        .catch( error => {
+        .catch(error => {
             internalError = error;
         });
-    
-    if(internalError){
+
+    if (internalError) {
         next(boatErrors.errorUpdateBoat(idBoat));
         return;
     }
 
-    if(affectedRows === 0){
+    if (affectedRows === 0) {
         next(boatErrors.notFound("updateById"));
         return;
     }
@@ -173,22 +214,22 @@ exports.update = async (request, response, next) => {
 };
 
 exports.delete = async (request, response, next) => {
-    
+
     const { params } = request;
     const idBoat = params.id;
 
     let internalError = null;
     const affectedRows = await Boat.remove(idBoat)
-        .catch( error => {
+        .catch(error => {
             internalError = error;
         });
 
-    if(internalError){
+    if (internalError) {
         next(boatErrors.errorDeleteBoat(idBoat));
         return;
     }
 
-    if(affectedRows === 0){
+    if (affectedRows === 0) {
         next(boatErrors.notFound("deleteBoat"));
         return;
     }
