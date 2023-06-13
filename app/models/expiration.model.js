@@ -3,17 +3,20 @@ const stringUtils = require("../utils/stringUtils");
 const ExpirationService = require("../services/expiration.service");
 
 class Expiration {
-    
+
     constructor(expiration) {
         this.IdExpiration = expiration.IdExpiration;
         this.IdBoat = expiration.IdBoat;
         this.Title = expiration.Title;
+        this.InitDate = expiration.InitDate;
         this.Description = expiration.Description;
+        this.InspectorCheck = expiration.InspectorCheck;
         this.ExpirationDate = expiration.ExpirationDate;
         this.IsDeleted = expiration.IsDeleted;
         this.TimeSave = expiration.TimeSave;
         this.TimeLastUpdate = expiration.TimeLastUpdate;
         this.TimeDeleted = expiration.TimeDeleted;
+        this.orderPrio = expiration.orderPrio;
     }
 
     static async create(newExpiration) {
@@ -30,7 +33,8 @@ class Expiration {
 
         let query = `SELECT expiration.*, boat.BoatName FROM expiration
         INNER JOIN boat ON expiration.IdBoat = boat.IdBoat 
-        WHERE expiration.IsDeleted = 0 AND boat.IdCompany ='${idCompany}'`;
+        WHERE expiration.IsDeleted = 0 AND boat.IdCompany ='${idCompany}'
+        `;
 
         query = stringUtils.cleanLineBreak(query);
 
@@ -42,10 +46,12 @@ class Expiration {
             query += ` AND expiration.Title LIKE '%${title}%'`;
         }
 
+        query += ` ORDER BY orderPrio ASC`;
+
         const queryResult = await pool.query(query);
-        
+
         let expirations = null;
-        if(queryResult[0].length){
+        if (queryResult[0].length) {
             expirations = queryResult[0];
 
             expirations.forEach(expiration => {
@@ -63,26 +69,28 @@ class Expiration {
         const queryResult = await pool.query(query);
 
         let expiration = null;
-        if(queryResult[0].length){
+        if (queryResult[0].length) {
             expiration = queryResult[0][0];
 
             const { ExpirationDate } = expiration;
-            
+
             expiration.DaysToExpiration = ExpirationService.getDaysToExpiration(ExpirationDate)
             expiration.Status = ExpirationService.calculateStatus(expiration);
         }
 
         return expiration;
     }
-    
-    static async updateById(expiration) {      
+
+    static async updateById(expiration) {
 
         let query = "UPDATE expiration SET ";
         query += `IdBoat = '${expiration.IdBoat}',`;
         query += `Title = '${expiration.Title}',`;
         query += `Description = '${expiration.Description}',`;
-        query += `ExpirationDate = '${expiration.ExpirationDate}',`;  
-        query += `TimeLastUpdate = ${expiration.TimeLastUpdate} `;
+        query += `ExpirationDate = '${expiration.ExpirationDate}',`;
+        query += `TimeLastUpdate = ${expiration.TimeLastUpdate}, `;
+        query += `InitDate = ${expiration.InitDate}, `;
+        query += `InspectorCheck = ${expiration.InspectorCheck} `;
         query += `WHERE IdExpiration = '${expiration.IdExpiration}' AND IsDeleted = 0;`;
 
         const queryResult = await pool.query(query);
@@ -90,7 +98,7 @@ class Expiration {
 
         return affectedRows;
     }
-    
+
     static async remove(deleteParams) {
 
         const { idExpiration, timeDeleted } = deleteParams;
@@ -99,7 +107,7 @@ class Expiration {
         const queryResult = await pool.query(query);
         const affectedRows = queryResult[0].affectedRows;
 
-        return affectedRows;        
+        return affectedRows;
     }
 }
 
