@@ -31,7 +31,7 @@ jobs:
           SOURCE: "./"
           REMOTE_HOST: "ec2-54-232-160-105.sa-east-1.compute.amazonaws.com"
           REMOTE_USER: "ubuntu"
-          TARGET: "/var/www/app.logiport.site/back/"
+          TARGET: "/var/www/app.logiport.com.ar/back/"
       - name: NPM start
         run: npm start
 
